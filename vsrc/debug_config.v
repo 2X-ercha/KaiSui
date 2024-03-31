@@ -1,0 +1,4 @@
+// `define DEBUG_IFU_IF_PRINT
+`define DEBUG_IDU_ID_PRINT
+
+// `define DEBUG_RTU_ROB_PRINT

@@ -22,11 +22,9 @@
 module rtu_pst_preg_entry(
     clk,
     rst_clk,
-
     create_iid,                 // 由idu ir级传入，创建表项的指令 id
     create_gpr_index,           // inst 对应的 gpr 索引
     create_gpr_pre_preg_index,  // gpr 索引目前对应的 preg 索引，用于 retire 时释放
-
     rtu_global_flush,
     x_pre_alloc_vld,            // PST 告诉该寄存器被选中
     x_alloc_vld,                // inst -> IS 时给出创建信号，RTU 创建 ROB 表项同时由 PST 给出信号
@@ -34,10 +32,8 @@ module rtu_pst_preg_entry(
     x_inst_retire_iid,          // 退休指令的iid，用于匹配产生自身退休信号
     x_retire_vld,               // 由 ROB 给出
     x_wb_vld,                   // 由 ROB 给出
-
     x_reset_mapped,             // reset 初始状态分配
     x_reset_gpr_mapped,         // reset 初始 gpr 分配
-
     x_pre_preg_release_expand,  // retire 时释放其他 preg 的 release_vld 旁路
     x_recover_table_preg_to_gpr,// recover table 展开表项
     x_preg_cur_stats_dealloc

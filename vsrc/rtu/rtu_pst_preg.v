@@ -1,10 +1,8 @@
 module rtu_pst_preg (
     clk,
     rst_clk,
-
     rtu_global_flush,
-
-    idu_rtu_ir_preg_alloc_vld,
+    idu_rtu_pst_pdst_req_vld,
     idu_rtu_pst_create_vld,
     idu_rtu_pst_create_preg_index,
     idu_rtu_pst_create_iid,
@@ -13,7 +11,6 @@ module rtu_pst_preg (
     x_inst_retire_iid,
     x_retire_vld,
     idu_rtu_pst_wb_vld,
-
     alloc_preg_vld,
     alloc_preg,
     rtu_idu_ir_recover_table
@@ -22,7 +19,7 @@ module rtu_pst_preg (
     input         clk;
     input         rst_clk;
     input         rtu_global_flush;
-    input         idu_rtu_ir_preg_alloc_vld;
+    input         idu_rtu_pst_pdst_req_vld;
     input         idu_rtu_pst_create_vld;
     input  [5 :0] idu_rtu_pst_create_preg_index;
     input  [3 :0] idu_rtu_pst_create_iid;
@@ -43,7 +40,7 @@ module rtu_pst_preg (
     wire        clk;
     wire        rst_clk;
     wire        rtu_global_flush;
-    wire        idu_rtu_ir_preg_alloc_vld;
+    wire        idu_rtu_pst_pdst_req_vld;
     wire        idu_rtu_pst_create_vld;
     wire [3 :0] idu_rtu_pst_create_iid;
     wire [4 :0] idu_rtu_pst_create_gpr_index;
@@ -4435,7 +4432,7 @@ module rtu_pst_preg (
      *
      * 当 idu ir 需要有 alloc 状态下的寄存器，或者上一周期后没有可用的 alloc 态寄存器（reset 或 flush 后）才可以更新
      */
-    assign alloc_preg_invalid = idu_rtu_ir_preg_alloc_vld || !alloc_preg_vld;
+    assign alloc_preg_invalid = idu_rtu_pst_pdst_req_vld || !alloc_preg_vld;
     assign pre_alloc_vld = |preg_pre_alloc_vld[63:0];
 
     always @(posedge clk or negedge rst_clk)
@@ -4456,7 +4453,5 @@ module rtu_pst_preg (
             alloc_preg_vld <= alloc_preg_vld;
             alloc_preg     <= pre_alloc_preg;
         end
-        $display("%b", rtu_idu_ir_recover_table);
-        $display("%x", preg_dealloc);
     end
 endmodule
