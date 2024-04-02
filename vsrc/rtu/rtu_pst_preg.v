@@ -4454,4 +4454,10 @@ module rtu_pst_preg (
             alloc_preg     <= pre_alloc_preg;
         end
     end
+
+    `ifdef DEBUG_RTU_PST_PRINT
+        always @(negedge clk) begin
+            $display("RTU_PST: alloc_preg = p%02d, vld = %b", alloc_preg, alloc_preg_vld);
+        end
+    `endif
 endmodule

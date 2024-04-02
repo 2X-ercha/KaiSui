@@ -116,7 +116,6 @@ module rtu_rob (
     reg [3 :0] head_iid_ptr;
     reg [3 :0] tail_iid_ptr;
     reg [4 :0] num;
-    reg        iid_vld;
 
     // &Wires;
     wire        clk;
@@ -172,6 +171,7 @@ module rtu_rob (
     wire        x_retire_vld;
     wire [3 :0] x_inst_retire_iid;
     wire        iid_invalid;
+    wire        iid_vld;
     wire [3 :0] iid;
     wire        rob_full_stats;
     wire        rob_empty_stats;
@@ -760,27 +760,14 @@ module rtu_rob (
     // iid req
     assign rob_full_stats = (num == 16);
     assign iid_invalid    = idu_rtu_rob_iid_req_vld || !iid_vld;
-
-    always @(posedge clk or negedge rst_clk)
-    begin
-        if (!rst_clk)
-            iid_vld <= 1;
-        else if (rtu_global_flush)
-            iid_vld <= 1;
-        else if (rob_full_stats)
-            iid_vld <= 0;
-        else if (iid_invalid)
-            iid_vld <= 1;
-        else
-            iid_vld <= iid_vld;
-    end
+    assign iid_vld        = !rob_full_stats;
 
     // iid create
     assign rob_create_vld = idu_rtu_rob_create_vld & !rob_full_stats;
     assign iid            = tail_iid_ptr;
     for (genvar i = 0; i < 16; i++)
     begin: create_vld_sign
-        assign create_vld[i] = (tail_iid_ptr == i);
+        assign create_vld[i] = (tail_iid_ptr == i) & rob_create_vld;
     end
 
     always @(posedge clk or negedge rst_clk)
@@ -842,7 +829,7 @@ module rtu_rob (
     `ifdef DEBUG_RTU_ROB_PRINT
         always @(negedge clk)
         begin: message_print
-            $display("RTU_ROB:");
+            $display("RTU_ROB: iid = %d, vld = %b, num = %d", iid, iid_vld, num);
             $display("|                                                 |    jump   |           src1          |           src2          |          dst         |            imm             |  type  |            pipe             |       stats        |");
             $display("| iid | vld | opcode  | funct3 |        pc        | bju | ras | src1_vld | src1 | psrc1 | src2_vld | src2 | psrc2 | dst_vld | dst | pdst | imm_vld |       imm        | RISBUJ | ALU | MXE | BJU | LSU | CP0 | issue? | complete? |");
             $display("| 0   | %b   | %b | %b    | %x | %b   | %b   | %b        | x%02d  | p%02d   | %b        | x%02d  | p%02d   | %b       | x%02d | p%02d  | %b       | %x | %b | %b   | %b   | %b   | %b   | %b   | %b      | %b         |",

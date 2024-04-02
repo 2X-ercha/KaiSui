@@ -303,7 +303,7 @@ module idu_id (
                     decode_src1     <= 0;
                     decode_src2_vld <= 0;
                     decode_src2     <= 0;
-                    decode_dst_vld  <= 1;
+                    decode_dst_vld  <= 1 & (dst != 0);
                     decode_dst      <= dst;
                     decode_imm_vld  <= 1;
                     decode_imm      <= {{(43){Jimm[20]}}, Jimm};
@@ -333,7 +333,7 @@ module idu_id (
     end
 
     assign iid_req  = decode_vld;
-    assign preg_req = decode_dst_vld;
+    assign preg_req = decode_dst_vld & (decode_dst != 0);
 
     `ifdef DEBUG_IDU_ID_PRINT
         always @(negedge clk)
