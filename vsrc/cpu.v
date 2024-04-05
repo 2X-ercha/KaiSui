@@ -7,6 +7,8 @@
 `include "idu/idu_rf_pc.v"
 `include "idu/idu_ir_rt.v"
 `include "idu/idu_ir_rt_entry.v"
+`include "idu/idu_is_aiq.v"
+`include "idu/idu_is_aiq_entry.v"
 `include "rtu/rtu_rob.v"
 `include "rtu/rtu_rob_entry.v"
 `include "rtu/rtu_pst_preg.v"
@@ -31,6 +33,7 @@ module cpu (
     wire        rst_clk;
     wire        rtu_global_flush;
     wire        y_front_pipeline_stall;
+    wire        aiq_stall_ctrl;
     wire        rob_idu_rf_pcjump_vld;
     wire        exu_idu_rf_bju_pcjump_vld;
     wire [63:0] exu_idu_rf_bju_pcjump_addr;
@@ -71,6 +74,40 @@ module cpu (
     wire        idu_idu_is_psrc2_ready;
     wire [5 :0] idu_idu_is_psrc2;
     wire        idu_idu_is_pdst_vld;
+    wire        idu_idu_is_alu_is_forward_vld;
+    wire [5 :0] idu_idu_is_alu_is_forward_preg;
+    wire        idu_idu_is_alu_rf_forward_vld;
+    wire [5 :0] idu_idu_is_alu_rf_forward_preg;
+    wire        exu_idu_is_alu_result_vld;
+    wire [5 :0] exu_idu_is_alu_result_preg;
+    wire        exu_idu_is_mul1_forward_vld;
+    wire [5 :0] exu_idu_is_mul1_forward_preg;
+    wire        exu_idu_is_mul2_forward_vld;
+    wire [5 :0] exu_idu_is_mul2_forward_preg;
+    wire        exu_idu_is_mul3_result_vld;
+    wire [5 :0] exu_idu_is_mul3_result_preg;
+    wire        exu_idu_is_div1_forward_vld;
+    wire [5 :0] exu_idu_is_div1_forward_preg;
+    wire        exu_idu_is_div2_forward_vld;
+    wire [5 :0] exu_idu_is_div2_forward_preg;
+    wire        exu_idu_is_div3_result_vld;
+    wire [5 :0] exu_idu_is_div3_result_preg;
+    wire        exu_idu_is_lsu_result_vld;
+    wire [5 :0] exu_idu_is_lsu_result_preg;
+    wire        idu_idu_rf_pipe0_vld;
+    wire [3 :0] idu_idu_rf_pipe0_iid;
+    wire [6 :0] idu_idu_rf_pipe0_opcode;
+    wire [6 :0] idu_idu_rf_pipe0_funct7;
+    wire [2 :0] idu_idu_rf_pipe0_funct3;
+    wire [63:0] idu_idu_rf_pipe0_pc;
+    wire        idu_idu_rf_pipe0_psrc1_vld;
+    wire [5 :0] idu_idu_rf_pipe0_psrc1;
+    wire        idu_idu_rf_pipe0_psrc2_vld;
+    wire [5 :0] idu_idu_rf_pipe0_psrc2;
+    wire        idu_idu_rf_pipe0_pdst_vld;
+    wire [5 :0] idu_idu_rf_pipe0_pdst;
+    wire        idu_idu_rf_pipe0_imm_vld;
+    wire [63:0] idu_idu_rf_pipe0_imm;
     wire        idu_rtu_rob_iid_req_vld;
     wire        idu_rtu_pst_pdst_req_vld;
     wire        idu_rtu_rob_create_vld;
@@ -178,61 +215,120 @@ module cpu (
     );
 
     idu_ir_rt idu_ir_rt(
-        .clk                            ( clk),
-        .rst_clk                        ( rst_clk),
-        .rtu_global_flush               ( rtu_global_flush),
-        .y_idu_ir_stall_ctrl            ( y_front_pipeline_stall),
-        .rtu_idu_ir_recover_table       ( rtu_idu_ir_recover_table),
-        .idu_idu_ir_vld                 ( idu_idu_ir_vld),
-        .idu_idu_ir_src1_vld            ( idu_idu_ir_src1_vld),
-        .idu_idu_ir_src1                ( idu_idu_ir_src1),
-        .idu_idu_ir_src2_vld            ( idu_idu_ir_src2_vld),
-        .idu_idu_ir_src2                ( idu_idu_ir_src2),
-        .idu_idu_ir_dst_vld             ( idu_idu_ir_dst_vld),
-        .idu_idu_ir_dst                 ( idu_idu_ir_dst),
-        .idu_idu_ir_opcode              ( idu_idu_ir_opcode),
-        .idu_idu_ir_funct7              ( idu_idu_ir_funct7),
-        .idu_idu_ir_funct3              ( idu_idu_ir_funct3),
-        .idu_idu_ir_pc                  ( idu_idu_ir_pc),
-        .idu_idu_ir_imm_vld             ( idu_idu_ir_imm_vld),
-        .idu_idu_ir_imm                 ( idu_idu_ir_imm),
-        .idu_idu_ir_type                ( idu_idu_ir_type),
-        .idu_idu_ir_pipe                ( idu_idu_ir_pipe),
-        .idu_idu_ir_ras                 ( idu_idu_ir_ras),
-        .rtu_idu_ir_alloc_vld           ( rtu_idu_is_preg_vld),
-        .rtu_idu_ir_alloc_preg          ( rtu_idu_is_preg),
-        .exu_idu_ir_alu_complete_vld    ( exu_idu_ir_alu_complete_vld),
-        .exu_idu_ir_alu_complete_preg   ( exu_idu_ir_alu_complete_preg),
-        .exu_idu_ir_mxu_complete_vld    ( exu_idu_ir_mxu_complete_vld),
-        .exu_idu_ir_mxu_complete_preg   ( exu_idu_ir_mxu_complete_preg),
-        .exu_idu_ir_bju_complete_vld    ( exu_idu_ir_bju_complete_vld),
-        .exu_idu_ir_bju_complete_preg   ( exu_idu_ir_bju_complete_preg),
-        .exu_idu_ir_lsu_complete_vld    ( exu_idu_ir_lsu_complete_vld),
-        .exu_idu_ir_lsu_complete_preg   ( exu_idu_ir_lsu_complete_preg),
-        .rename_vld                     ( idu_idu_is_vld),
-        .rename_src1_vld                ( idu_rtu_rob_create_src1_vld),
-        .rename_src1                    ( idu_rtu_rob_create_src1),
-        .rename_src2_vld                ( idu_rtu_rob_create_src2_vld),
-        .rename_src2                    ( idu_rtu_rob_create_src2),
-        .rename_dst_vld                 ( idu_rtu_rob_create_dst_vld),
-        .rename_dst                     ( idu_rtu_rob_create_dst),
-        .rename_opcode                  ( idu_idu_is_opcode),
-        .rename_funct7                  ( idu_idu_is_funct7),
-        .rename_funct3                  ( idu_idu_is_funct3),
-        .rename_pc                      ( idu_idu_is_pc),
-        .rename_imm_vld                 ( idu_idu_is_imm_vld),
-        .rename_imm                     ( idu_idu_is_imm),
-        .rename_type                    ( idu_idu_is_type),
-        .rename_pipe                    ( idu_idu_is_pipe),
-        .rename_ras                     ( idu_idu_is_ras),
-        .rename_psrc1_vld               ( idu_idu_is_psrc1_vld),
-        .rename_psrc1_ready             ( idu_idu_is_psrc1_ready),
-        .rename_psrc1                   ( idu_idu_is_psrc1),
-        .rename_psrc2_vld               ( idu_idu_is_psrc2_vld),
-        .rename_psrc2_ready             ( idu_idu_is_psrc2_ready),
-        .rename_psrc2                   ( idu_idu_is_psrc2),
-        .rename_pdst_vld                ( idu_idu_is_pdst_vld),
-        .rename_pdst                    ( idu_rtu_pst_create_gpr_pre_preg_index)
+        .clk                            ( clk                                    ),
+        .rst_clk                        ( rst_clk                                ),
+        .rtu_global_flush               ( rtu_global_flush                       ),
+        .y_idu_ir_stall_ctrl            ( y_front_pipeline_stall                 ),
+        .rtu_idu_ir_recover_table       ( rtu_idu_ir_recover_table               ),
+        .idu_idu_ir_vld                 ( idu_idu_ir_vld                         ),
+        .idu_idu_ir_src1_vld            ( idu_idu_ir_src1_vld                    ),
+        .idu_idu_ir_src1                ( idu_idu_ir_src1                        ),
+        .idu_idu_ir_src2_vld            ( idu_idu_ir_src2_vld                    ),
+        .idu_idu_ir_src2                ( idu_idu_ir_src2                        ),
+        .idu_idu_ir_dst_vld             ( idu_idu_ir_dst_vld                     ),
+        .idu_idu_ir_dst                 ( idu_idu_ir_dst                         ),
+        .idu_idu_ir_opcode              ( idu_idu_ir_opcode                      ),
+        .idu_idu_ir_funct7              ( idu_idu_ir_funct7                      ),
+        .idu_idu_ir_funct3              ( idu_idu_ir_funct3                      ),
+        .idu_idu_ir_pc                  ( idu_idu_ir_pc                          ),
+        .idu_idu_ir_imm_vld             ( idu_idu_ir_imm_vld                     ),
+        .idu_idu_ir_imm                 ( idu_idu_ir_imm                         ),
+        .idu_idu_ir_type                ( idu_idu_ir_type                        ),
+        .idu_idu_ir_pipe                ( idu_idu_ir_pipe                        ),
+        .idu_idu_ir_ras                 ( idu_idu_ir_ras                         ),
+        .rtu_idu_ir_alloc_vld           ( rtu_idu_is_preg_vld                    ),
+        .rtu_idu_ir_alloc_preg          ( rtu_idu_is_preg                        ),
+        .exu_idu_ir_alu_complete_vld    ( exu_idu_ir_alu_complete_vld            ),
+        .exu_idu_ir_alu_complete_preg   ( exu_idu_ir_alu_complete_preg           ),
+        .exu_idu_ir_mxu_complete_vld    ( exu_idu_ir_mxu_complete_vld            ),
+        .exu_idu_ir_mxu_complete_preg   ( exu_idu_ir_mxu_complete_preg           ),
+        .exu_idu_ir_bju_complete_vld    ( exu_idu_ir_bju_complete_vld            ),
+        .exu_idu_ir_bju_complete_preg   ( exu_idu_ir_bju_complete_preg           ),
+        .exu_idu_ir_lsu_complete_vld    ( exu_idu_ir_lsu_complete_vld            ),
+        .exu_idu_ir_lsu_complete_preg   ( exu_idu_ir_lsu_complete_preg           ),
+        .rename_vld                     ( idu_idu_is_vld                         ),
+        .rename_src1_vld                ( idu_rtu_rob_create_src1_vld            ),
+        .rename_src1                    ( idu_rtu_rob_create_src1                ),
+        .rename_src2_vld                ( idu_rtu_rob_create_src2_vld            ),
+        .rename_src2                    ( idu_rtu_rob_create_src2                ),
+        .rename_dst_vld                 ( idu_rtu_rob_create_dst_vld             ),
+        .rename_dst                     ( idu_rtu_rob_create_dst                 ),
+        .rename_opcode                  ( idu_idu_is_opcode                      ),
+        .rename_funct7                  ( idu_idu_is_funct7                      ),
+        .rename_funct3                  ( idu_idu_is_funct3                      ),
+        .rename_pc                      ( idu_idu_is_pc                          ),
+        .rename_imm_vld                 ( idu_idu_is_imm_vld                     ),
+        .rename_imm                     ( idu_idu_is_imm                         ),
+        .rename_type                    ( idu_rtu_rob_create_type                ),
+        .rename_pipe                    ( idu_idu_is_pipe                        ),
+        .rename_ras                     ( idu_rtu_rob_create_ras                 ),
+        .rename_psrc1_vld               ( idu_idu_is_psrc1_vld                   ),
+        .rename_psrc1_ready             ( idu_idu_is_psrc1_ready                 ),
+        .rename_psrc1                   ( idu_idu_is_psrc1                       ),
+        .rename_psrc2_vld               ( idu_idu_is_psrc2_vld                   ),
+        .rename_psrc2_ready             ( idu_idu_is_psrc2_ready                 ),
+        .rename_psrc2                   ( idu_idu_is_psrc2                       ),
+        .rename_pdst_vld                ( idu_idu_is_pdst_vld                    ),
+        .rename_pdst                    ( idu_rtu_pst_create_gpr_pre_preg_index  )
+    );
+
+    idu_is_aiq idu_is_aiq(
+        .clk                                ( clk),
+        .rst_clk                            ( rst_clk),
+        .rtu_global_flush                   ( rtu_global_flush),
+        .y_idu_is_stall_ctrl                ( y_front_pipeline_stall),
+        .idu_idu_is_vld                     ( idu_idu_is_vld),
+        .rtu_idu_is_iid                     ( rtu_idu_is_iid),
+        .idu_idu_is_opcode                  ( idu_idu_is_opcode),
+        .idu_idu_is_funct7                  ( idu_idu_is_funct7),
+        .idu_idu_is_funct3                  ( idu_idu_is_funct3),
+        .idu_idu_is_pc                      ( idu_idu_is_pc),
+        .idu_idu_is_psrc1_vld               ( idu_idu_is_psrc1_vld),
+        .idu_idu_is_psrc1_ready             ( idu_idu_is_psrc1_ready),
+        .idu_idu_is_psrc1                   ( idu_idu_is_psrc1),
+        .idu_idu_is_psrc2_vld               ( idu_idu_is_psrc2_vld),
+        .idu_idu_is_psrc2_ready             ( idu_idu_is_psrc2_ready),
+        .idu_idu_is_psrc2                   ( idu_idu_is_psrc2),
+        .idu_idu_is_pdst_vld                ( idu_idu_is_pdst_vld),
+        .rtu_idu_is_preg                    ( rtu_idu_is_preg),
+        .idu_idu_is_imm_vld                 ( idu_idu_is_imm_vld),
+        .idu_idu_is_imm                     ( idu_idu_is_imm),
+        .idu_idu_is_pipe                    ( idu_idu_is_pipe),
+        .idu_idu_is_alu_rf_forward_vld      ( idu_idu_is_alu_rf_forward_vld ),
+        .idu_idu_is_alu_rf_forward_preg     ( idu_idu_is_alu_rf_forward_preg),
+        .exu_idu_is_alu_result_vld          ( exu_idu_is_alu_result_vld),
+        .exu_idu_is_alu_result_preg         ( exu_idu_is_alu_result_preg),
+        .exu_idu_is_mul1_forward_vld        ( exu_idu_is_mul1_forward_vld),
+        .exu_idu_is_mul1_forward_preg       ( exu_idu_is_mul1_forward_preg),
+        .exu_idu_is_mul2_forward_vld        ( exu_idu_is_mul2_forward_vld),
+        .exu_idu_is_mul2_forward_preg       ( exu_idu_is_mul2_forward_preg),
+        .exu_idu_is_mul3_result_vld         ( exu_idu_is_mul3_result_vld),
+        .exu_idu_is_mul3_result_preg        ( exu_idu_is_mul3_result_preg),
+        .exu_idu_is_div1_forward_vld        ( exu_idu_is_div1_forward_vld),
+        .exu_idu_is_div1_forward_preg       ( exu_idu_is_div1_forward_preg),
+        .exu_idu_is_div2_forward_vld        ( exu_idu_is_div2_forward_vld),
+        .exu_idu_is_div2_forward_preg       ( exu_idu_is_div2_forward_preg),
+        .exu_idu_is_div3_result_vld         ( exu_idu_is_div3_result_vld),
+        .exu_idu_is_div3_result_preg        ( exu_idu_is_div3_result_preg),
+        .exu_idu_is_lsu_result_vld          ( exu_idu_is_lsu_result_vld),
+        .exu_idu_is_lsu_result_preg         ( exu_idu_is_lsu_result_preg),
+        .aiq_stall_ctrl                     ( aiq_stall_ctrl),
+        .aiq_vld                            ( idu_idu_rf_pipe0_vld),
+        .aiq_iid                            ( idu_idu_rf_pipe0_iid),
+        .aiq_opcode                         ( idu_idu_rf_pipe0_opcode),
+        .aiq_funct7                         ( idu_idu_rf_pipe0_funct7),
+        .aiq_funct3                         ( idu_idu_rf_pipe0_funct3),
+        .aiq_pc                             ( idu_idu_rf_pipe0_pc),
+        .aiq_psrc1_vld                      ( idu_idu_rf_pipe0_psrc1_vld),
+        .aiq_psrc1                          ( idu_idu_rf_pipe0_psrc1),
+        .aiq_psrc2_vld                      ( idu_idu_rf_pipe0_psrc2_vld),
+        .aiq_psrc2                          ( idu_idu_rf_pipe0_psrc2),
+        .aiq_pdst_vld                       ( idu_idu_rf_pipe0_pdst_vld),
+        .aiq_pdst                           ( idu_idu_rf_pipe0_pdst),
+        .aiq_imm_vld                        ( idu_idu_rf_pipe0_imm_vld),
+        .aiq_imm                            ( idu_idu_rf_pipe0_imm),
+        .idu_idu_is_alu_is_forward_vld      ( idu_idu_is_alu_is_forward_vld),
+        .idu_idu_is_alu_is_forward_preg     ( idu_idu_is_alu_is_forward_preg)
     );
 
     idu_rf_pc idu_rf_pc(
@@ -318,7 +414,7 @@ module cpu (
     );
 
     // debug
-    assign y_front_pipeline_stall = !rtu_idu_is_iid_vld | !rtu_idu_is_preg_vld;
+    assign y_front_pipeline_stall = !rtu_idu_is_iid_vld | !rtu_idu_is_preg_vld | (aiq_stall_ctrl & idu_idu_is_pipe[4]);
     assign rob_idu_rf_pcjump_vld = 0;
     assign exu_idu_rf_bju_pcjump_vld = 0;
     assign exu_idu_rf_bju_pcjump_addr = 64'b0;
@@ -339,11 +435,9 @@ module cpu (
     assign idu_rtu_rob_create_pdst       = rtu_idu_is_preg;
     assign idu_rtu_rob_create_imm        = idu_idu_is_imm;
     assign idu_rtu_rob_create_imm_vld    = idu_idu_is_imm_vld;
-    assign idu_rtu_rob_create_type       = idu_idu_is_type;
     assign idu_rtu_rob_create_pipe       = idu_idu_is_pipe;
-    assign idu_rtu_rob_create_ras        = idu_idu_is_ras;
-    assign idu_rtu_rob_alu_issue_vld     = 0;
-    assign idu_rtu_rob_alu_issue_iid     = 0;
+    assign idu_rtu_rob_alu_issue_vld     = idu_idu_rf_pipe0_vld;
+    assign idu_rtu_rob_alu_issue_iid     = idu_idu_rf_pipe0_iid;
     assign idu_rtu_rob_mxu_issue_vld     = 0;
     assign idu_rtu_rob_mxu_issue_iid     = 0;
     assign idu_rtu_rob_bju_issue_vld     = 0;
@@ -370,4 +464,22 @@ module cpu (
     assign idu_rtu_pst_create_iid                = rtu_idu_is_iid;
     assign idu_rtu_pst_create_gpr_index          = idu_rtu_rob_create_dst;
     assign idu_rtu_pst_wb_vld                    = 0;
+    assign idu_idu_is_alu_rf_forward_vld  = 0;
+    assign idu_idu_is_alu_rf_forward_preg = 0;
+    assign exu_idu_is_alu_result_vld      = 0;
+    assign exu_idu_is_alu_result_preg     = 0;
+    assign exu_idu_is_mul1_forward_vld    = 0;
+    assign exu_idu_is_mul1_forward_preg   = 0;
+    assign exu_idu_is_mul2_forward_vld    = 0;
+    assign exu_idu_is_mul2_forward_preg   = 0;
+    assign exu_idu_is_mul3_result_vld     = 0;
+    assign exu_idu_is_mul3_result_preg    = 0;
+    assign exu_idu_is_div1_forward_vld    = 0;
+    assign exu_idu_is_div1_forward_preg   = 0;
+    assign exu_idu_is_div2_forward_vld    = 0;
+    assign exu_idu_is_div2_forward_preg   = 0;
+    assign exu_idu_is_div3_result_vld     = 0;
+    assign exu_idu_is_div3_result_preg    = 0;
+    assign exu_idu_is_lsu_result_vld      = 0;
+    assign exu_idu_is_lsu_result_preg     = 0;
 endmodule

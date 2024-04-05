@@ -161,9 +161,9 @@ module idu_id (
     assign J         = J_jal;
     assign inst_type = {R, I, S, B, U, J};
 
-    assign pipe0_alu = (R_alu64 & !funct7[0]) | (R_alu32 & !funct7[0]) | I_alu64 | I_alu32 | U_lui;
+    assign pipe0_alu = (R_alu64 & !funct7[0]) | (R_alu32 & !funct7[0]) | I_alu64 | I_alu32 | U_lui | U_auipc;
     assign pipe1_mxu = (R_alu64 &  funct7[0]) | (R_alu32 &  funct7[0]);
-    assign pipe2_bju = I_jalr | B_branch | J_jal | U_auipc;
+    assign pipe2_bju = I_jalr | B_branch | J_jal;
     assign pipe3_lsu = I_memload | S_memstore;
     assign pipe4_cp0 = I_env;
     assign pipe      = {pipe0_alu, pipe1_mxu, pipe2_bju, pipe3_lsu, pipe4_cp0};
@@ -253,7 +253,7 @@ module idu_id (
                     decode_src1     <= src1;
                     decode_src2_vld <= 1;
                     decode_src2     <= src2;
-                    decode_dst_vld  <= 1;
+                    decode_dst_vld  <= 1 & (dst != 0);
                     decode_dst      <= dst;
                     decode_imm_vld  <= 0;
                     decode_imm      <= 0;
@@ -263,7 +263,7 @@ module idu_id (
                     decode_src1     <= src1;
                     decode_src2_vld <= 0;
                     decode_src2     <= 0;
-                    decode_dst_vld  <= 1;
+                    decode_dst_vld  <= 1 & (dst != 0);
                     decode_dst      <= dst;
                     decode_imm_vld  <= 1;
                     decode_imm      <= {{(52){Iimm[11]}}, Iimm};
@@ -293,7 +293,7 @@ module idu_id (
                     decode_src1     <= 0;
                     decode_src2_vld <= 0;
                     decode_src2     <= 0;
-                    decode_dst_vld  <= 1;
+                    decode_dst_vld  <= 1 & (dst != 0);
                     decode_dst      <= dst;
                     decode_imm_vld  <= 1;
                     decode_imm      <= {{(32){Uimm[31]}}, Uimm};
@@ -333,7 +333,7 @@ module idu_id (
     end
 
     assign iid_req  = decode_vld;
-    assign preg_req = decode_dst_vld & (decode_dst != 0);
+    assign preg_req = decode_dst_vld;
 
     `ifdef DEBUG_IDU_ID_PRINT
         always @(negedge clk)

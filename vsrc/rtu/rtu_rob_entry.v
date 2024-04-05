@@ -188,7 +188,7 @@ module rtu_rob_entry (
             psrc2     <= create_psrc2;
             dst       <= create_dst;
             dst_vld   <= create_dst_vld;
-            pdst      <= create_pdst;
+            pdst      <= (create_dst == 0) ? 0 : create_pdst;
             imm       <= create_imm;
             imm_vld   <= create_imm_vld;
             inst_type <= create_type;
