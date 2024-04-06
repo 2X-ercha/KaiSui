@@ -260,7 +260,7 @@ module idu_id (
                 end
                 caseI: begin
                     decode_src1_vld <= 1;
-                    decode_src1     <= src1;
+                    decode_src1     <= (I_env) ? 5'd10 : src1;
                     decode_src2_vld <= 0;
                     decode_src2     <= 0;
                     decode_dst_vld  <= 1 & (dst != 0);

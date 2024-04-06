@@ -16,7 +16,7 @@ module exu_alu (
     idu_exu_alu_pdst,
     idu_exu_alu_imm_vld,
     idu_exu_alu_imm,
-    exu_rtu_rob_complete,
+    exu_rtu_rob_alu_complete,
     exu_rtu_rob_alu_iid,
     exu_idu_rf_alu_wb_vld,
     exu_idu_rf_alu_wb_preg,
@@ -40,7 +40,7 @@ module exu_alu (
     input  [5 :0] idu_exu_alu_pdst;
     input         idu_exu_alu_imm_vld;
     input  [63:0] idu_exu_alu_imm;
-    output        exu_rtu_rob_complete;
+    output        exu_rtu_rob_alu_complete;
     output [3 :0] exu_rtu_rob_alu_iid;
     output        exu_idu_rf_alu_wb_vld;
     output [5 :0] exu_idu_rf_alu_wb_preg;
@@ -80,7 +80,7 @@ module exu_alu (
     wire [5 :0] idu_exu_alu_pdst;
     wire        idu_exu_alu_imm_vld;
     wire [63:0] idu_exu_alu_imm;
-    wire        exu_rtu_rob_complete;
+    wire        exu_rtu_rob_alu_complete;
     wire [3 :0] exu_rtu_rob_alu_iid;
     wire        exu_idu_rf_alu_wb_vld;
     wire [5 :0] exu_idu_rf_alu_wb_preg;
@@ -261,14 +261,14 @@ module exu_alu (
     assign alu64_sel = (R | I) &  op64;
     assign alu32_sel = (R | I) & ~op64;
 
-    assign exu_rtu_rob_complete   = vld;
-    assign exu_rtu_rob_alu_iid    = iid;
-    assign exu_idu_rf_alu_wb_vld  = pdst_vld;
-    assign exu_idu_rf_alu_wb_preg = pdst;
-    assign exu_idu_rf_alu_wb_data = (alu_out_64 & {64{alu64_sel}})
-                                  | ({{32{alu_out_64[31]}}, alu_out_64[31:0]} & {64{alu32_sel}})
-                                  | (lui & {64{U_lui}})
-                                  | (auipc & {64{U_auipc}});
+    assign exu_rtu_rob_alu_complete   = vld;
+    assign exu_rtu_rob_alu_iid        = iid;
+    assign exu_idu_rf_alu_wb_vld      = pdst_vld;
+    assign exu_idu_rf_alu_wb_preg     = pdst;
+    assign exu_idu_rf_alu_wb_data     = (alu_out_64 & {64{alu64_sel}})
+                                      | ({{32{alu_out_64[31]}}, alu_out_64[31:0]} & {64{alu32_sel}})
+                                      | (lui & {64{U_lui}})
+                                      | (auipc & {64{U_auipc}});
 
     `ifdef DEBUG_EXU_ALU_PRINT
         always @(negedge clk)

@@ -8,11 +8,15 @@
 `include "idu/idu_ir_rt_entry.v"
 `include "idu/idu_is_aiq.v"
 `include "idu/idu_is_aiq_entry.v"
+`include "idu/idu_is_biq.v"
+`include "idu/idu_is_biq_entry.v"
 `include "idu/idu_rf_pipe0.v"
+`include "idu/idu_rf_pipe2.v"
 `include "idu/idu_rf_pc.v"
 `include "idu/idu_rf_pregfile.v"
 `include "idu/idu_rf_preg.v"
 `include "exu/exu_alu.v"
+`include "exu/exu_bju.v"
 `include "exu/exu_cdb.v"
 `include "rtu/rtu_rob.v"
 `include "rtu/rtu_rob_entry.v"
@@ -39,6 +43,7 @@ module cpu (
     wire        rtu_global_flush;
     wire        y_front_pipeline_stall;
     wire        aiq_stall_ctrl;
+    wire        biq_stall_ctrl;
     wire        rob_idu_rf_pcjump_vld;
     wire        exu_idu_rf_bju_pcjump_vld;
     wire [63:0] exu_idu_rf_bju_pcjump_addr;
@@ -113,6 +118,20 @@ module cpu (
     wire [5 :0] idu_idu_rf_pipe0_pdst;
     wire        idu_idu_rf_pipe0_imm_vld;
     wire [63:0] idu_idu_rf_pipe0_imm;
+    wire        idu_idu_rf_pipe2_vld;
+    wire [3 :0] idu_idu_rf_pipe2_iid;
+    wire [6 :0] idu_idu_rf_pipe2_opcode;
+    wire [6 :0] idu_idu_rf_pipe2_funct7;
+    wire [2 :0] idu_idu_rf_pipe2_funct3;
+    wire [63:0] idu_idu_rf_pipe2_pc;
+    wire        idu_idu_rf_pipe2_psrc1_vld;
+    wire [5 :0] idu_idu_rf_pipe2_psrc1;
+    wire        idu_idu_rf_pipe2_psrc2_vld;
+    wire [5 :0] idu_idu_rf_pipe2_psrc2;
+    wire        idu_idu_rf_pipe2_pdst_vld;
+    wire [5 :0] idu_idu_rf_pipe2_pdst;
+    wire        idu_idu_rf_pipe2_imm_vld;
+    wire [63:0] idu_idu_rf_pipe2_imm;
     wire        exu_idu_rf_alu_ex_vld;
     wire [5 :0] exu_idu_rf_alu_ex_preg;
     wire [63:0] exu_idu_rf_alu_ex_result;
@@ -178,6 +197,20 @@ module cpu (
     wire [5 :0] idu_exu_alu_pdst;
     wire        idu_exu_alu_imm_vld;
     wire [63:0] idu_exu_alu_imm;
+    wire        idu_exu_bju_vld;
+    wire [3 :0] idu_exu_bju_iid;
+    wire [6 :0] idu_exu_bju_opcode;
+    wire [6 :0] idu_exu_bju_funct7;
+    wire [2 :0] idu_exu_bju_funct3;
+    wire [63:0] idu_exu_bju_pc;
+    wire        idu_exu_bju_psrc1_vld;
+    wire [63:0] idu_exu_bju_psrc1_value;
+    wire        idu_exu_bju_psrc2_vld;
+    wire [63:0] idu_exu_bju_psrc2_value;
+    wire        idu_exu_bju_pdst_vld;
+    wire [5 :0] idu_exu_bju_pdst;
+    wire        idu_exu_bju_imm_vld;
+    wire [63:0] idu_exu_bju_imm;
     wire        idu_rtu_rob_iid_req_vld;
     wire        idu_rtu_pst_pdst_req_vld;
     wire        idu_rtu_rob_create_vld;
@@ -208,8 +241,10 @@ module cpu (
     wire [3 :0] idu_rtu_rob_lsu_issue_iid;
     wire        idu_rtu_rob_cp0_issue_vld;
     wire [3 :0] idu_rtu_rob_cp0_issue_iid;
-    wire        exu_rtu_rob_complete;
+    wire        exu_rtu_rob_alu_complete;
     wire [3 :0] exu_rtu_rob_alu_iid;
+    wire        exu_rtu_rob_bju_complete;
+    wire [3 :0] exu_rtu_rob_bju_iid;
     wire        exu_idu_rf_alu_wb_vld;
     wire [5 :0] exu_idu_rf_alu_wb_preg;
     wire [63:0] exu_idu_rf_alu_wb_data;
@@ -273,7 +308,7 @@ module cpu (
     );
 
     // idu modules
-    idu_id u_idu_id(
+    idu_id idu_id(
         .clk                 	( clk                       ),
         .rst_clk             	( rst_clk                   ),
         .rtu_global_flush    	( rtu_global_flush          ),
@@ -418,6 +453,65 @@ module cpu (
         .idu_idu_is_alu_is_forward_preg     ( idu_idu_is_alu_is_forward_preg    )
     );
 
+    idu_is_biq idu_is_biq(
+        .clk                            	( clk                             ),
+        .rst_clk                        	( rst_clk                         ),
+        .rtu_global_flush               	( rtu_global_flush                ),
+        .y_idu_is_stall_ctrl            	( y_front_pipeline_stall          ),
+        .idu_idu_is_vld                 	( idu_idu_is_vld                  ),
+        .rtu_idu_is_iid                 	( rtu_idu_is_iid                  ),
+        .idu_idu_is_opcode              	( idu_idu_is_opcode               ),
+        .idu_idu_is_funct7              	( idu_idu_is_funct7               ),
+        .idu_idu_is_funct3              	( idu_idu_is_funct3               ),
+        .idu_idu_is_pc                  	( idu_idu_is_pc                   ),
+        .idu_idu_is_psrc1_vld           	( idu_idu_is_psrc1_vld            ),
+        .idu_idu_is_psrc1_ready         	( idu_idu_is_psrc1_ready          ),
+        .idu_idu_is_psrc1               	( idu_idu_is_psrc1                ),
+        .idu_idu_is_psrc2_vld           	( idu_idu_is_psrc2_vld            ),
+        .idu_idu_is_psrc2_ready         	( idu_idu_is_psrc2_ready          ),
+        .idu_idu_is_psrc2               	( idu_idu_is_psrc2                ),
+        .idu_idu_is_pdst_vld            	( idu_idu_is_pdst_vld             ),
+        .rtu_idu_is_preg                	( rtu_idu_is_preg                 ),
+        .idu_idu_is_imm_vld             	( idu_idu_is_imm_vld              ),
+        .idu_idu_is_imm                 	( idu_idu_is_imm                  ),
+        .idu_idu_is_pipe                	( idu_idu_is_pipe                 ),
+        .idu_idu_is_alu_is_forward_vld  	( idu_idu_is_alu_is_forward_vld   ),
+        .idu_idu_is_alu_is_forward_preg 	( idu_idu_is_alu_is_forward_preg  ),
+        .idu_idu_is_alu_rf_forward_vld  	( idu_idu_is_alu_rf_forward_vld   ),
+        .idu_idu_is_alu_rf_forward_preg 	( idu_idu_is_alu_rf_forward_preg  ),
+        .exu_idu_is_alu_result_vld      	( exu_idu_is_alu_result_vld       ),
+        .exu_idu_is_alu_result_preg     	( exu_idu_is_alu_result_preg      ),
+        .exu_idu_is_mul1_forward_vld    	( exu_idu_is_mul1_forward_vld     ),
+        .exu_idu_is_mul1_forward_preg   	( exu_idu_is_mul1_forward_preg    ),
+        .exu_idu_is_mul2_forward_vld    	( exu_idu_is_mul2_forward_vld     ),
+        .exu_idu_is_mul2_forward_preg   	( exu_idu_is_mul2_forward_preg    ),
+        .exu_idu_is_mul3_result_vld     	( exu_idu_is_mul3_result_vld      ),
+        .exu_idu_is_mul3_result_preg    	( exu_idu_is_mul3_result_preg     ),
+        .exu_idu_is_div1_forward_vld    	( exu_idu_is_div1_forward_vld     ),
+        .exu_idu_is_div1_forward_preg   	( exu_idu_is_div1_forward_preg    ),
+        .exu_idu_is_div2_forward_vld    	( exu_idu_is_div2_forward_vld     ),
+        .exu_idu_is_div2_forward_preg   	( exu_idu_is_div2_forward_preg    ),
+        .exu_idu_is_div3_result_vld     	( exu_idu_is_div3_result_vld      ),
+        .exu_idu_is_div3_result_preg    	( exu_idu_is_div3_result_preg     ),
+        .exu_idu_is_lsu_result_vld      	( exu_idu_is_lsu_result_vld       ),
+        .exu_idu_is_lsu_result_preg     	( exu_idu_is_lsu_result_preg      ),
+        .biq_stall_ctrl                 	( biq_stall_ctrl                  ),
+        .biq_vld                        	( idu_idu_rf_pipe2_vld            ),
+        .biq_iid                        	( idu_idu_rf_pipe2_iid            ),
+        .biq_opcode                     	( idu_idu_rf_pipe2_opcode         ),
+        .biq_funct7                     	( idu_idu_rf_pipe2_funct7         ),
+        .biq_funct3                     	( idu_idu_rf_pipe2_funct3         ),
+        .biq_pc                         	( idu_idu_rf_pipe2_pc             ),
+        .biq_psrc1_vld                  	( idu_idu_rf_pipe2_psrc1_vld      ),
+        .biq_psrc1                      	( idu_idu_rf_pipe2_psrc1          ),
+        .biq_psrc2_vld                  	( idu_idu_rf_pipe2_psrc2_vld      ),
+        .biq_psrc2                      	( idu_idu_rf_pipe2_psrc2          ),
+        .biq_pdst_vld                   	( idu_idu_rf_pipe2_pdst_vld       ),
+        .biq_pdst                       	( idu_idu_rf_pipe2_pdst           ),
+        .biq_imm_vld                    	( idu_idu_rf_pipe2_imm_vld        ),
+        .biq_imm                        	( idu_idu_rf_pipe2_imm            )
+    );
+
     idu_rf_pipe0 idu_rf_pipe0(
         .clk                            	( clk                             ),
         .rst_clk                        	( rst_clk                         ),
@@ -484,6 +578,70 @@ module cpu (
         .idu_idu_is_alu_rf_forward_preg 	( idu_idu_is_alu_rf_forward_preg  )
     );
 
+    idu_rf_pipe2 idu_rf_pipe2(
+        .clk                            	( clk                             ),
+        .rst_clk                        	( rst_clk                         ),
+        .rtu_global_flush               	( rtu_global_flush                ),
+        .idu_idu_rf_pipe2_vld           	( idu_idu_rf_pipe2_vld            ),
+        .idu_idu_rf_pipe2_iid           	( idu_idu_rf_pipe2_iid            ),
+        .idu_idu_rf_pipe2_opcode        	( idu_idu_rf_pipe2_opcode         ),
+        .idu_idu_rf_pipe2_funct7        	( idu_idu_rf_pipe2_funct7         ),
+        .idu_idu_rf_pipe2_funct3        	( idu_idu_rf_pipe2_funct3         ),
+        .idu_idu_rf_pipe2_pc            	( idu_idu_rf_pipe2_pc             ),
+        .idu_idu_rf_pipe2_psrc1_vld     	( idu_idu_rf_pipe2_psrc1_vld      ),
+        .idu_idu_rf_pipe2_psrc1         	( idu_idu_rf_pipe2_psrc1          ),
+        .idu_idu_rf_pipe2_psrc2_vld     	( idu_idu_rf_pipe2_psrc2_vld      ),
+        .idu_idu_rf_pipe2_psrc2         	( idu_idu_rf_pipe2_psrc2          ),
+        .idu_idu_rf_pipe2_pdst_vld      	( idu_idu_rf_pipe2_pdst_vld       ),
+        .idu_idu_rf_pipe2_pdst          	( idu_idu_rf_pipe2_pdst           ),
+        .idu_idu_rf_pipe2_imm_vld       	( idu_idu_rf_pipe2_imm_vld        ),
+        .idu_idu_rf_pipe2_imm           	( idu_idu_rf_pipe2_imm            ),
+        .exu_idu_rf_alu_ex_vld          	( exu_idu_rf_alu_ex_vld           ),
+        .exu_idu_rf_alu_ex_preg         	( exu_idu_rf_alu_ex_preg          ),
+        .exu_idu_rf_alu_ex_result       	( exu_idu_rf_alu_ex_result        ),
+        .exu_idu_rf_mxu_ex_vld          	( exu_idu_rf_mxu_ex_vld           ),
+        .exu_idu_rf_mxu_ex_preg         	( exu_idu_rf_mxu_ex_preg          ),
+        .exu_idu_rf_mxu_ex_result       	( exu_idu_rf_mxu_ex_result        ),
+        .exu_idu_rf_div_ex_vld          	( exu_idu_rf_div_ex_vld           ),
+        .exu_idu_rf_div_ex_preg         	( exu_idu_rf_div_ex_preg          ),
+        .exu_idu_rf_div_ex_result       	( exu_idu_rf_div_ex_result        ),
+        .exu_idu_rf_lsu_ex_vld          	( exu_idu_rf_lsu_ex_vld           ),
+        .exu_idu_rf_lsu_ex_preg         	( exu_idu_rf_lsu_ex_preg          ),
+        .exu_idu_rf_lsu_ex_result       	( exu_idu_rf_lsu_ex_result        ),
+        .exu_idu_rf_alu_cdb_vld         	( exu_idu_rf_alu_cdb_vld          ),
+        .exu_idu_rf_alu_cdb_preg        	( exu_idu_rf_alu_cdb_preg         ),
+        .exu_idu_rf_alu_cdb_result      	( exu_idu_rf_alu_cdb_result       ),
+        .exu_idu_rf_mxu_cdb_vld         	( exu_idu_rf_mxu_cdb_vld          ),
+        .exu_idu_rf_mxu_cdb_preg        	( exu_idu_rf_mxu_cdb_preg         ),
+        .exu_idu_rf_mxu_cdb_result      	( exu_idu_rf_mxu_cdb_result       ),
+        .exu_idu_rf_div_cdb_vld         	( exu_idu_rf_div_cdb_vld          ),
+        .exu_idu_rf_div_cdb_preg        	( exu_idu_rf_div_cdb_preg         ),
+        .exu_idu_rf_div_cdb_result      	( exu_idu_rf_div_cdb_result       ),
+        .exu_idu_rf_lsu_cdb_vld         	( exu_idu_rf_lsu_cdb_vld          ),
+        .exu_idu_rf_lsu_cdb_preg        	( exu_idu_rf_lsu_cdb_preg         ),
+        .exu_idu_rf_lsu_cdb_result      	( exu_idu_rf_lsu_cdb_result       ),
+        .x_rf_pipe2_psrc1_value         	( idu_idu_rf_x_pipe2_psrc1_value  ),
+        .x_rf_pipe2_psrc2_value         	( idu_idu_rf_x_pipe2_psrc2_value  ),
+        .x_rf_preg_psrc1_vld            	( idu_idu_rf_x_pipe2_psrc1_vld    ),
+        .x_rf_preg_psrc1                	( idu_idu_rf_x_pipe2_psrc1        ),
+        .x_rf_preg_psrc2_vld            	( idu_idu_rf_x_pipe2_psrc2_vld    ),
+        .x_rf_preg_psrc2                	( idu_idu_rf_x_pipe2_psrc2        ),
+        .pipe2_vld                      	( idu_exu_bju_vld                 ),
+        .pipe2_iid                      	( idu_exu_bju_iid                 ),
+        .pipe2_opcode                   	( idu_exu_bju_opcode              ),
+        .pipe2_funct7                   	( idu_exu_bju_funct7              ),
+        .pipe2_funct3                   	( idu_exu_bju_funct3              ),
+        .pipe2_pc                       	( idu_exu_bju_pc                  ),
+        .pipe2_psrc1_vld                	( idu_exu_bju_psrc1_vld           ),
+        .pipe2_psrc1_value              	( idu_exu_bju_psrc1_value         ),
+        .pipe2_psrc2_vld                	( idu_exu_bju_psrc2_vld           ),
+        .pipe2_psrc2_value              	( idu_exu_bju_psrc2_value         ),
+        .pipe2_pdst_vld                 	( idu_exu_bju_pdst_vld            ),
+        .pipe2_pdst                     	( idu_exu_bju_pdst                ),
+        .pipe2_imm_vld                  	( idu_exu_bju_imm_vld             ),
+        .pipe2_imm                      	( idu_exu_bju_imm                 )
+    );
+
     idu_rf_pc idu_rf_pc(
         .clk                        	( clk                         ),
         .rst_clk                    	( rst_clk                     ),
@@ -545,28 +703,55 @@ module cpu (
 
     // exu_module
     exu_alu exu_alu(
-        .clk                     	( clk                      ),
-        .rst_clk                 	( rst_clk                  ),
-        .rtu_global_flush        	( rtu_global_flush         ),
-        .idu_exu_alu_vld         	( idu_exu_alu_vld          ),
-        .idu_exu_alu_iid         	( idu_exu_alu_iid          ),
-        .idu_exu_alu_opcode      	( idu_exu_alu_opcode       ),
-        .idu_exu_alu_funct7      	( idu_exu_alu_funct7       ),
-        .idu_exu_alu_funct3      	( idu_exu_alu_funct3       ),
-        .idu_exu_alu_pc          	( idu_exu_alu_pc           ),
-        .idu_exu_alu_psrc1_vld   	( idu_exu_alu_psrc1_vld    ),
-        .idu_exu_alu_psrc1_value 	( idu_exu_alu_psrc1_value  ),
-        .idu_exu_alu_psrc2_vld   	( idu_exu_alu_psrc2_vld    ),
-        .idu_exu_alu_psrc2_value 	( idu_exu_alu_psrc2_value  ),
-        .idu_exu_alu_pdst_vld    	( idu_exu_alu_pdst_vld     ),
-        .idu_exu_alu_pdst        	( idu_exu_alu_pdst         ),
-        .idu_exu_alu_imm_vld     	( idu_exu_alu_imm_vld      ),
-        .idu_exu_alu_imm         	( idu_exu_alu_imm          ),
-        .exu_rtu_rob_complete    	( exu_rtu_rob_complete     ),
-        .exu_rtu_rob_alu_iid     	( exu_rtu_rob_alu_iid      ),
-        .exu_idu_rf_alu_wb_vld   	( exu_idu_rf_alu_wb_vld    ),
-        .exu_idu_rf_alu_wb_preg  	( exu_idu_rf_alu_wb_preg   ),
-        .exu_idu_rf_alu_wb_data  	( exu_idu_rf_alu_wb_data   )
+        .clk                     	    ( clk                       ),
+        .rst_clk                 	    ( rst_clk                   ),
+        .rtu_global_flush        	    ( rtu_global_flush          ),
+        .idu_exu_alu_vld         	    ( idu_exu_alu_vld           ),
+        .idu_exu_alu_iid         	    ( idu_exu_alu_iid           ),
+        .idu_exu_alu_opcode      	    ( idu_exu_alu_opcode        ),
+        .idu_exu_alu_funct7      	    ( idu_exu_alu_funct7        ),
+        .idu_exu_alu_funct3      	    ( idu_exu_alu_funct3        ),
+        .idu_exu_alu_pc          	    ( idu_exu_alu_pc            ),
+        .idu_exu_alu_psrc1_vld   	    ( idu_exu_alu_psrc1_vld     ),
+        .idu_exu_alu_psrc1_value 	    ( idu_exu_alu_psrc1_value   ),
+        .idu_exu_alu_psrc2_vld   	    ( idu_exu_alu_psrc2_vld     ),
+        .idu_exu_alu_psrc2_value 	    ( idu_exu_alu_psrc2_value   ),
+        .idu_exu_alu_pdst_vld    	    ( idu_exu_alu_pdst_vld      ),
+        .idu_exu_alu_pdst        	    ( idu_exu_alu_pdst          ),
+        .idu_exu_alu_imm_vld     	    ( idu_exu_alu_imm_vld       ),
+        .idu_exu_alu_imm         	    ( idu_exu_alu_imm           ),
+        .exu_rtu_rob_alu_complete       ( exu_rtu_rob_alu_complete  ),
+        .exu_rtu_rob_alu_iid     	    ( exu_rtu_rob_alu_iid       ),
+        .exu_idu_rf_alu_wb_vld   	    ( exu_idu_rf_alu_wb_vld     ),
+        .exu_idu_rf_alu_wb_preg  	    ( exu_idu_rf_alu_wb_preg    ),
+        .exu_idu_rf_alu_wb_data  	    ( exu_idu_rf_alu_wb_data    )
+    );
+
+    exu_bju exu_bju(
+        .clk                        	( clk                         ),
+        .rst_clk                    	( rst_clk                     ),
+        .rtu_global_flush           	( rtu_global_flush            ),
+        .idu_exu_bju_vld            	( idu_exu_bju_vld             ),
+        .idu_exu_bju_iid            	( idu_exu_bju_iid             ),
+        .idu_exu_bju_opcode         	( idu_exu_bju_opcode          ),
+        .idu_exu_bju_funct7         	( idu_exu_bju_funct7          ),
+        .idu_exu_bju_funct3         	( idu_exu_bju_funct3          ),
+        .idu_exu_bju_pc             	( idu_exu_bju_pc              ),
+        .idu_exu_bju_psrc1_vld      	( idu_exu_bju_psrc1_vld       ),
+        .idu_exu_bju_psrc1_value    	( idu_exu_bju_psrc1_value     ),
+        .idu_exu_bju_psrc2_vld      	( idu_exu_bju_psrc2_vld       ),
+        .idu_exu_bju_psrc2_value    	( idu_exu_bju_psrc2_value     ),
+        .idu_exu_bju_pdst_vld       	( idu_exu_bju_pdst_vld        ),
+        .idu_exu_bju_pdst           	( idu_exu_bju_pdst            ),
+        .idu_exu_bju_imm_vld        	( idu_exu_bju_imm_vld         ),
+        .idu_exu_bju_imm            	( idu_exu_bju_imm             ),
+        .exu_rtu_rob_bju_complete   	( exu_rtu_rob_bju_complete    ),
+        .exu_rtu_rob_bju_iid        	( exu_rtu_rob_bju_iid         ),
+        .exu_idu_rf_bju_wb_vld      	( exu_idu_rf_bju_wb_vld       ),
+        .exu_idu_rf_bju_wb_preg     	( exu_idu_rf_bju_wb_preg      ),
+        .exu_idu_rf_bju_wb_data     	( exu_idu_rf_bju_wb_data      ),
+        .exu_idu_rf_bju_pcjump_vld  	( exu_idu_rf_bju_pcjump_vld   ),
+        .exu_idu_rf_bju_pcjump_addr 	( exu_idu_rf_bju_pcjump_addr  )
     );
 
     exu_cdb exu_cdb(
@@ -672,15 +857,15 @@ module cpu (
     );
 
     // debug
-    assign y_front_pipeline_stall = !rtu_idu_is_iid_vld | !rtu_idu_is_preg_vld | (aiq_stall_ctrl & idu_idu_is_pipe[4]);
-    assign exu_idu_rf_bju_pcjump_vld = 0;
-    assign exu_idu_rf_bju_pcjump_addr = 64'b0;
-    assign exu_idu_ir_alu_complete_vld  = 0;
-    assign exu_idu_ir_alu_complete_preg = 0;
+    assign y_front_pipeline_stall = !rtu_idu_is_iid_vld | !rtu_idu_is_preg_vld
+                                  | (aiq_stall_ctrl & idu_idu_is_pipe[4])
+                                  | (biq_stall_ctrl & idu_idu_is_pipe[2]);
+    assign exu_idu_ir_alu_complete_vld  = exu_idu_rf_alu_wb_vld;
+    assign exu_idu_ir_alu_complete_preg = exu_idu_rf_alu_wb_preg;
     assign exu_idu_ir_mxu_complete_vld  = 0;
     assign exu_idu_ir_mxu_complete_preg = 0;
-    assign exu_idu_ir_bju_complete_vld  = 0;
-    assign exu_idu_ir_bju_complete_preg = 0;
+    assign exu_idu_ir_bju_complete_vld  = exu_idu_rf_bju_wb_vld;
+    assign exu_idu_ir_bju_complete_preg = exu_idu_rf_bju_wb_preg;
     assign exu_idu_ir_lsu_complete_vld  = 0;
     assign exu_idu_ir_lsu_complete_preg = 0;
     assign idu_rtu_rob_create_vld        = idu_idu_is_vld;
@@ -695,31 +880,31 @@ module cpu (
     assign idu_rtu_rob_create_pipe       = idu_idu_is_pipe;
     assign idu_rtu_rob_alu_issue_vld     = idu_idu_rf_pipe0_vld;
     assign idu_rtu_rob_alu_issue_iid     = idu_idu_rf_pipe0_iid;
-    assign idu_rtu_rob_mxu_issue_vld     = 0;
-    assign idu_rtu_rob_mxu_issue_iid     = 0;
+    assign idu_rtu_rob_mxu_issue_vld     = idu_idu_rf_pipe2_vld;
+    assign idu_rtu_rob_mxu_issue_iid     = idu_idu_rf_pipe2_iid;
     assign idu_rtu_rob_bju_issue_vld     = 0;
     assign idu_rtu_rob_bju_issue_iid     = 0;
     assign idu_rtu_rob_lsu_issue_vld     = 0;
     assign idu_rtu_rob_lsu_issue_iid     = 0;
     assign idu_rtu_rob_cp0_issue_vld     = 0;
     assign idu_rtu_rob_cp0_issue_iid     = 0;
-    assign exu_rtu_rob_alu_complete_vld  = exu_rtu_rob_complete;
+    assign exu_rtu_rob_alu_complete_vld  = exu_rtu_rob_alu_complete;
     assign exu_rtu_rob_alu_complete_iid  = exu_rtu_rob_alu_iid;
     assign exu_rtu_rob_mxu_complete_vld  = 0;
     assign exu_rtu_rob_mxu_complete_iid  = 0;
-    assign exu_rtu_rob_bju_complete_vld  = 0;
-    assign exu_rtu_rob_bju_complete_iid  = 0;
+    assign exu_rtu_rob_bju_complete_vld  = exu_rtu_rob_bju_complete;
+    assign exu_rtu_rob_bju_complete_iid  = exu_rtu_rob_bju_iid;
     assign exu_rtu_rob_lsu_complete_vld  = 0;
     assign exu_rtu_rob_lsu_complete_iid  = 0;
     assign exu_rtu_rob_cp0_complete_vld  = 0;
     assign exu_rtu_rob_cp0_complete_iid  = 0;
-    assign exu_rtu_rob_bju_pcjump_vld    = 0;
-    assign exu_rtu_rob_bju_pcjump_iid    = 0;
+    assign exu_rtu_rob_bju_pcjump_vld    = exu_idu_rf_bju_pcjump_vld;
+    assign exu_rtu_rob_bju_pcjump_iid    = exu_rtu_rob_bju_iid;
     assign ebreak_gpr10                  = 0;
-    assign idu_rtu_pst_create_vld                = idu_idu_is_vld & idu_idu_is_pdst_vld;
-    assign idu_rtu_pst_create_preg_index         = rtu_idu_is_preg;
-    assign idu_rtu_pst_create_iid                = rtu_idu_is_iid;
-    assign idu_rtu_pst_create_gpr_index          = idu_rtu_rob_create_dst;
+    assign idu_rtu_pst_create_vld         = idu_idu_is_vld & idu_idu_is_pdst_vld;
+    assign idu_rtu_pst_create_preg_index  = rtu_idu_is_preg;
+    assign idu_rtu_pst_create_iid         = rtu_idu_is_iid;
+    assign idu_rtu_pst_create_gpr_index   = idu_rtu_rob_create_dst;
     assign exu_idu_is_alu_result_vld      = exu_idu_rf_alu_wb_vld;
     assign exu_idu_is_alu_result_preg     = exu_idu_rf_alu_wb_preg;
     assign exu_idu_is_mul1_forward_vld    = 0;
