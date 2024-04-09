@@ -1,4 +1,4 @@
-module idu_is_aiq_entry (
+module idu_is_lsiq_entry (
     clk,
     rst_clk,
     rtu_global_flush,

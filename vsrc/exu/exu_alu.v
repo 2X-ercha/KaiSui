@@ -27,7 +27,7 @@ module exu_alu (
     input         rst_clk;
     input         rtu_global_flush;
     input         idu_exu_alu_vld;
-    input  [3 :0] idu_exu_alu_iid;
+    input  [4 :0] idu_exu_alu_iid;
     input  [6 :0] idu_exu_alu_opcode;
     input  [6 :0] idu_exu_alu_funct7;
     input  [2 :0] idu_exu_alu_funct3;
@@ -41,14 +41,14 @@ module exu_alu (
     input         idu_exu_alu_imm_vld;
     input  [63:0] idu_exu_alu_imm;
     output        exu_rtu_rob_alu_complete;
-    output [3 :0] exu_rtu_rob_alu_iid;
+    output [4 :0] exu_rtu_rob_alu_iid;
     output        exu_idu_rf_alu_wb_vld;
     output [5 :0] exu_idu_rf_alu_wb_preg;
     output [63:0] exu_idu_rf_alu_wb_data;
 
     // &Regs;
     reg        vld;
-    reg [3 :0] iid;
+    reg [4 :0] iid;
     reg [6 :0] opcode;
     reg [6 :0] funct7;
     reg [2 :0] funct3;
@@ -67,7 +67,7 @@ module exu_alu (
     wire        rst_clk;
     wire        rtu_global_flush;
     wire        idu_exu_alu_vld;
-    wire [3 :0] idu_exu_alu_iid;
+    wire [4 :0] idu_exu_alu_iid;
     wire [6 :0] idu_exu_alu_opcode;
     wire [6 :0] idu_exu_alu_funct7;
     wire [2 :0] idu_exu_alu_funct3;
@@ -81,7 +81,7 @@ module exu_alu (
     wire        idu_exu_alu_imm_vld;
     wire [63:0] idu_exu_alu_imm;
     wire        exu_rtu_rob_alu_complete;
-    wire [3 :0] exu_rtu_rob_alu_iid;
+    wire [4 :0] exu_rtu_rob_alu_iid;
     wire        exu_idu_rf_alu_wb_vld;
     wire [5 :0] exu_idu_rf_alu_wb_preg;
     wire [63:0] exu_idu_rf_alu_wb_data;

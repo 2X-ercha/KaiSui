@@ -247,14 +247,14 @@ module rtu_rob_entry (
             bju <= 0;
         else if (rtu_global_flush || retire_vld)
             bju <= 0;
-        else if (bju_vld && vld)
+        else if (bju_vld & vld)
             bju <= 1;
         else
             bju <= bju;
     end
 
     // retire sign
-    assign retire_vld = (complete | complete_vld) & head_iid_ptr_cur_vld & vld;
+    assign retire_vld = (complete | complete_vld) & head_iid_ptr_cur_vld & vld & ~rtu_global_flush;
 
     // flush sign and jump_en（同一条线）
     // flush 周期可以取指（注 fetch 时 IF 依然取指令，但 ID 需要刷新
@@ -269,7 +269,7 @@ module rtu_rob_entry (
             flush_vld <= 0;
             jump_vld  <= 0;
         end
-        else if (retire_vld & (bju | ras)) begin
+        else if (retire_vld & (bju | ras | bju_vld)) begin
             flush_vld <= 1;
             jump_vld  <= 1;
         end
@@ -280,13 +280,11 @@ module rtu_rob_entry (
     end
 
     // ebreak
-    /*
     always @(retire_vld)
     begin
         if (opcode == I_ENV && imm == ENVFLAG_EBREAK)
             ebreak(pc, ebreak_gpr10);
     end
-    */
 
     assign inst_message = {vld, opcode, funct3, pc, bju, ras,
                            src1_vld, src1, psrc1,

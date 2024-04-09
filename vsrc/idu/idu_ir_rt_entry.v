@@ -11,6 +11,8 @@ module idu_ir_rt_entry(
     pipe0_alu_wb_preg,
     pipe1_mxu_wb_vld,
     pipe1_mxu_wb_preg,
+    pipe1_div_wb_vld,
+    pipe1_div_wb_preg,
     pipe2_bju_wb_vld,
     pipe2_bju_wb_preg,
     pipe3_lsu_wb_vld,
@@ -31,6 +33,8 @@ module idu_ir_rt_entry(
     input  [5 :0] pipe0_alu_wb_preg;
     input         pipe1_mxu_wb_vld;
     input  [5 :0] pipe1_mxu_wb_preg;
+    input         pipe1_div_wb_vld;
+    input  [5 :0] pipe1_div_wb_preg;
     input         pipe2_bju_wb_vld;
     input  [5 :0] pipe2_bju_wb_preg;
     input         pipe3_lsu_wb_vld;
@@ -55,12 +59,15 @@ module idu_ir_rt_entry(
     wire [5 :0] pipe0_alu_wb_preg;
     wire        pipe1_mxu_wb_vld;
     wire [5 :0] pipe1_mxu_wb_preg;
+    wire        pipe1_div_wb_vld;
+    wire [5 :0] pipe1_div_wb_preg;
     wire        pipe2_bju_wb_vld;
     wire [5 :0] pipe2_bju_wb_preg;
     wire        pipe3_lsu_wb_vld;
     wire [5 :0] pipe3_lsu_wb_preg;
     wire        alu_ready_match;
     wire        mxu_ready_match;
+    wire        div_ready_match;
     wire        bju_ready_match;
     wire        lsu_ready_match;
     wire        ready_vld;
@@ -81,10 +88,12 @@ module idu_ir_rt_entry(
 
     assign alu_ready_match = (pipe0_alu_wb_preg == preg);
     assign mxu_ready_match = (pipe1_mxu_wb_preg == preg);
+    assign div_ready_match = (pipe1_div_wb_preg == preg);
     assign bju_ready_match = (pipe2_bju_wb_preg == preg);
     assign lsu_ready_match = (pipe3_lsu_wb_preg == preg);
     assign ready_vld       = (alu_ready_match & pipe0_alu_wb_vld)
                            | (mxu_ready_match & pipe1_mxu_wb_vld)
+                           | (div_ready_match & pipe1_div_wb_vld)
                            | (bju_ready_match & pipe2_bju_wb_vld)
                            | (lsu_ready_match & pipe3_lsu_wb_vld);
 

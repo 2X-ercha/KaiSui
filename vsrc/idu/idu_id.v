@@ -236,6 +236,16 @@ module idu_id (
             decode_imm_vld  <= 0;
             decode_imm      <= 0;
         end
+        else if (rtu_global_flush) begin
+            decode_src1_vld <= 0;
+            decode_src1     <= 0;
+            decode_src2_vld <= 0;
+            decode_src2     <= 0;
+            decode_dst_vld  <= 0;
+            decode_dst      <= 0;
+            decode_imm_vld  <= 0;
+            decode_imm      <= 0;
+        end
         else if (y_idu_id_stall_ctrl) begin
             decode_src1_vld <= decode_src1_vld;
             decode_src1     <= decode_src1;

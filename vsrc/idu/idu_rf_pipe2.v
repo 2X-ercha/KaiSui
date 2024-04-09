@@ -66,7 +66,7 @@ module idu_rf_pipe2 (
     input         rst_clk;
     input         rtu_global_flush;
     input         idu_idu_rf_pipe2_vld;
-    input  [3 :0] idu_idu_rf_pipe2_iid;
+    input  [4 :0] idu_idu_rf_pipe2_iid;
     input  [6 :0] idu_idu_rf_pipe2_opcode;
     input  [6 :0] idu_idu_rf_pipe2_funct7;
     input  [2 :0] idu_idu_rf_pipe2_funct3;
@@ -110,7 +110,7 @@ module idu_rf_pipe2 (
     output        x_rf_preg_psrc2_vld;
     output [5 :0] x_rf_preg_psrc2;
     output        pipe2_vld;
-    output [3 :0] pipe2_iid;
+    output [4 :0] pipe2_iid;
     output [6 :0] pipe2_opcode;
     output [6 :0] pipe2_funct7;
     output [2 :0] pipe2_funct3;
@@ -130,7 +130,7 @@ module idu_rf_pipe2 (
     reg        x_rf_preg_psrc2_vld;
     reg [5 :0] x_rf_preg_psrc2;
     reg        pipe2_vld;
-    reg [3 :0] pipe2_iid;
+    reg [4 :0] pipe2_iid;
     reg [6 :0] pipe2_opcode;
     reg [6 :0] pipe2_funct7;
     reg [2 :0] pipe2_funct3;
@@ -145,7 +145,7 @@ module idu_rf_pipe2 (
     wire        rst_clk;
     wire        rtu_global_flush;
     wire        idu_idu_rf_pipe2_vld;
-    wire [3 :0] idu_idu_rf_pipe2_iid;
+    wire [4 :0] idu_idu_rf_pipe2_iid;
     wire [6 :0] idu_idu_rf_pipe2_opcode;
     wire [6 :0] idu_idu_rf_pipe2_funct7;
     wire [2 :0] idu_idu_rf_pipe2_funct3;

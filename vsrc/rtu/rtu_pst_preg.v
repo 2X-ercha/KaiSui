@@ -22,10 +22,10 @@ module rtu_pst_preg (
     input         idu_rtu_pst_pdst_req_vld;
     input         idu_rtu_pst_create_vld;
     input  [5 :0] idu_rtu_pst_create_preg_index;
-    input  [3 :0] idu_rtu_pst_create_iid;
+    input  [4 :0] idu_rtu_pst_create_iid;
     input  [4 :0] idu_rtu_pst_create_gpr_index;
     input  [5 :0] idu_rtu_pst_create_gpr_pre_preg_index;
-    input  [3 :0] x_inst_retire_iid;
+    input  [4 :0] x_inst_retire_iid;
     input         x_retire_vld;
     input  [63:0] idu_rtu_pst_wb_vld;
     output        alloc_preg_vld;
@@ -42,10 +42,10 @@ module rtu_pst_preg (
     wire        rtu_global_flush;
     wire        idu_rtu_pst_pdst_req_vld;
     wire        idu_rtu_pst_create_vld;
-    wire [3 :0] idu_rtu_pst_create_iid;
+    wire [4 :0] idu_rtu_pst_create_iid;
     wire [4 :0] idu_rtu_pst_create_gpr_index;
     wire [5 :0] idu_rtu_pst_create_gpr_pre_preg_index;
-    wire [3 :0] x_inst_retire_iid;
+    wire [4 :0] x_inst_retire_iid;
     wire        x_retire_vld;
     wire [63:0] idu_rtu_pst_wb_vld;
     wire [191:0] rtu_idu_ir_recover_table;
@@ -1661,6 +1661,7 @@ module rtu_pst_preg (
                           | {6{preg_pre_alloc_priority[8]}}  & 6'd8
                           | {6{preg_pre_alloc_priority[9]}}  & 6'd9
                           | {6{preg_pre_alloc_priority[10]}} & 6'd10
+                          | {6{preg_pre_alloc_priority[11]}} & 6'd11
                           | {6{preg_pre_alloc_priority[12]}} & 6'd12
                           | {6{preg_pre_alloc_priority[13]}} & 6'd13
                           | {6{preg_pre_alloc_priority[14]}} & 6'd14
@@ -4458,6 +4459,22 @@ module rtu_pst_preg (
     `ifdef DEBUG_RTU_PST_PRINT
         always @(negedge clk) begin
             $display("RTU_PST: alloc_preg = p%02d, vld = %b", alloc_preg, alloc_preg_vld);
+        end
+    `endif
+
+    `ifdef DEBUG_FLUSH_PRINT
+        always @(negedge clk) begin
+            if (rtu_global_flush) begin
+                $display("%d %d %d %d %d %d %d %d\n%d %d %d %d %d %d %d %d\n%d %d %d %d %d %d %d %d\n%d %d %d %d %d %d %d %d",
+                                       gpr31_recover_mapped, gpr30_recover_mapped, gpr29_recover_mapped, gpr28_recover_mapped,
+                                       gpr27_recover_mapped, gpr26_recover_mapped, gpr25_recover_mapped, gpr24_recover_mapped,
+                                       gpr23_recover_mapped, gpr22_recover_mapped, gpr21_recover_mapped, gpr20_recover_mapped,
+                                       gpr19_recover_mapped, gpr18_recover_mapped, gpr17_recover_mapped, gpr16_recover_mapped,
+                                       gpr15_recover_mapped, gpr14_recover_mapped, gpr13_recover_mapped, gpr12_recover_mapped,
+                                       gpr11_recover_mapped, gpr10_recover_mapped, gpr9_recover_mapped,  gpr8_recover_mapped ,
+                                       gpr7_recover_mapped,  gpr6_recover_mapped,  gpr5_recover_mapped,  gpr4_recover_mapped ,
+                                       gpr3_recover_mapped,  gpr2_recover_mapped,  gpr1_recover_mapped,  gpr0_recover_mapped);
+            end
         end
     `endif
 endmodule

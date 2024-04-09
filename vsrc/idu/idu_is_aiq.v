@@ -62,7 +62,7 @@ module idu_is_aiq (
     input         rtu_global_flush;
     input         y_idu_is_stall_ctrl;
     input         idu_idu_is_vld;
-    input  [3 :0] rtu_idu_is_iid;
+    input  [4 :0] rtu_idu_is_iid;
     input  [6 :0] idu_idu_is_opcode;
     input  [6 :0] idu_idu_is_funct7;
     input  [2 :0] idu_idu_is_funct3;
@@ -98,7 +98,7 @@ module idu_is_aiq (
     input  [5 :0] exu_idu_is_lsu_result_preg;
     output        aiq_stall_ctrl;
     output        aiq_vld;
-    output [3 :0] aiq_iid;
+    output [4 :0] aiq_iid;
     output [6 :0] aiq_opcode;
     output [6 :0] aiq_funct7;
     output [2 :0] aiq_funct3;
@@ -131,7 +131,7 @@ module idu_is_aiq (
     wire        rtu_global_flush;
     wire        y_idu_is_stall_ctrl;
     wire        idu_idu_is_vld;
-    wire [3 :0] rtu_idu_is_iid;
+    wire [4 :0] rtu_idu_is_iid;
     wire [6 :0] idu_idu_is_opcode;
     wire [6 :0] idu_idu_is_funct7;
     wire [2 :0] idu_idu_is_funct3;
@@ -197,7 +197,7 @@ module idu_is_aiq (
     wire        aiq_stall_ctrl;
     wire        create_entry_vld;
     wire        aiq_vld;
-    wire [3 :0] aiq_iid;
+    wire [4 :0] aiq_iid;
     wire [6 :0] aiq_opcode;
     wire [6 :0] aiq_funct7;
     wire [2 :0] aiq_funct3;
@@ -210,14 +210,14 @@ module idu_is_aiq (
     wire [5 :0] aiq_pdst;
     wire        aiq_imm_vld;
     wire [63:0] aiq_imm;
-    wire [3 :0] entry0_iid;
-    wire [3 :0] entry1_iid;
-    wire [3 :0] entry2_iid;
-    wire [3 :0] entry3_iid;
-    wire [3 :0] entry4_iid;
-    wire [3 :0] entry5_iid;
-    wire [3 :0] entry6_iid;
-    wire [3 :0] entry7_iid;
+    wire [4 :0] entry0_iid;
+    wire [4 :0] entry1_iid;
+    wire [4 :0] entry2_iid;
+    wire [4 :0] entry3_iid;
+    wire [4 :0] entry4_iid;
+    wire [4 :0] entry5_iid;
+    wire [4 :0] entry6_iid;
+    wire [4 :0] entry7_iid;
     wire [6 :0] entry0_opcode;
     wire [6 :0] entry1_opcode;
     wire [6 :0] entry2_opcode;
@@ -937,14 +937,14 @@ module idu_is_aiq (
             entry7_age <= entry7_age;
     end
 
-    assign aiq_iid = (entry0_iid & {4{issue_vld[0]}})
-                   | (entry1_iid & {4{issue_vld[1]}})
-                   | (entry2_iid & {4{issue_vld[2]}})
-                   | (entry3_iid & {4{issue_vld[3]}})
-                   | (entry4_iid & {4{issue_vld[4]}})
-                   | (entry5_iid & {4{issue_vld[5]}})
-                   | (entry6_iid & {4{issue_vld[6]}})
-                   | (entry7_iid & {4{issue_vld[7]}});
+    assign aiq_iid = (entry0_iid & {5{issue_vld[0]}})
+                   | (entry1_iid & {5{issue_vld[1]}})
+                   | (entry2_iid & {5{issue_vld[2]}})
+                   | (entry3_iid & {5{issue_vld[3]}})
+                   | (entry4_iid & {5{issue_vld[4]}})
+                   | (entry5_iid & {5{issue_vld[5]}})
+                   | (entry6_iid & {5{issue_vld[6]}})
+                   | (entry7_iid & {5{issue_vld[7]}});
     assign aiq_opcode = (entry0_opcode & {7{issue_vld[0]}})
                       | (entry1_opcode & {7{issue_vld[1]}})
                       | (entry2_opcode & {7{issue_vld[2]}})

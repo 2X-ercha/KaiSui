@@ -29,7 +29,7 @@ module exu_bju (
     input         rst_clk;
     input         rtu_global_flush;
     input         idu_exu_bju_vld;
-    input  [3 :0] idu_exu_bju_iid;
+    input  [4 :0] idu_exu_bju_iid;
     input  [6 :0] idu_exu_bju_opcode;
     input  [6 :0] idu_exu_bju_funct7;
     input  [2 :0] idu_exu_bju_funct3;
@@ -43,7 +43,7 @@ module exu_bju (
     input         idu_exu_bju_imm_vld;
     input  [63:0] idu_exu_bju_imm;
     output        exu_rtu_rob_bju_complete;
-    output [3 :0] exu_rtu_rob_bju_iid;
+    output [4 :0] exu_rtu_rob_bju_iid;
     output        exu_idu_rf_bju_wb_vld;
     output [5 :0] exu_idu_rf_bju_wb_preg;
     output [63:0] exu_idu_rf_bju_wb_data;
@@ -52,7 +52,7 @@ module exu_bju (
 
     // &Regs;
     reg        vld;
-    reg [3 :0] iid;
+    reg [4 :0] iid;
     reg [6 :0] opcode;
     reg [6 :0] funct7;
     reg [2 :0] funct3;
@@ -71,7 +71,7 @@ module exu_bju (
     wire        rst_clk;
     wire        rtu_global_flush;
     wire        idu_exu_bju_vld;
-    wire [3 :0] idu_exu_bju_iid;
+    wire [4 :0] idu_exu_bju_iid;
     wire [6 :0] idu_exu_bju_opcode;
     wire [6 :0] idu_exu_bju_funct7;
     wire [2 :0] idu_exu_bju_funct3;
@@ -85,7 +85,7 @@ module exu_bju (
     wire        idu_exu_bju_imm_vld;
     wire [63:0] idu_exu_bju_imm;
     wire        exu_rtu_rob_bju_complete;
-    wire [3 :0] exu_rtu_rob_bju_iid;
+    wire [4 :0] exu_rtu_rob_bju_iid;
     wire        exu_idu_rf_bju_wb_vld;
     wire [5 :0] exu_idu_rf_bju_wb_preg;
     wire [63:0] exu_idu_rf_bju_wb_data;

@@ -60,7 +60,7 @@ module idu_is_biq_entry (
     input         rst_clk;
     input         rtu_global_flush;
     input         create_vld;
-    input  [3 :0] create_iid;
+    input  [4 :0] create_iid;
     input  [6 :0] create_opcode;
     input  [6 :0] create_funct7;
     input  [2 :0] create_funct3;
@@ -97,7 +97,7 @@ module idu_is_biq_entry (
     input         exu_idu_is_lsu_result_vld;
     input  [5 :0] exu_idu_is_lsu_result_preg;
     output        vld;
-    output [3 :0] iid;
+    output [4 :0] iid;
     output [6 :0] opcode;
     output [6 :0] funct7;
     output [2 :0] funct3;
@@ -114,7 +114,7 @@ module idu_is_biq_entry (
 
     // &Regs;
     reg        vld;
-    reg [3 :0] iid;
+    reg [4 :0] iid;
     reg [6 :0] opcode;
     reg [6 :0] funct7;
     reg [2 :0] funct3;
@@ -135,7 +135,7 @@ module idu_is_biq_entry (
     wire        rst_clk;
     wire        rtu_global_flush;
     wire        create_vld;
-    wire [3 :0] create_iid;
+    wire [4 :0] create_iid;
     wire [6 :0] create_opcode;
     wire [6 :0] create_funct7;
     wire [2 :0] create_funct3;

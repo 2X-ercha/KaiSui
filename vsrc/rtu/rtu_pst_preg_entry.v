@@ -42,7 +42,7 @@ module rtu_pst_preg_entry(
     input         clk;
     input         rst_clk;
 
-    input  [3 :0] create_iid;
+    input  [4 :0] create_iid;
     input  [4 :0] create_gpr_index;
     input  [5 :0] create_gpr_pre_preg_index;
 
@@ -50,7 +50,7 @@ module rtu_pst_preg_entry(
     input         x_pre_alloc_vld;
     input         x_alloc_vld;
     input         x_release_vld;
-    input  [3 :0] x_inst_retire_iid;
+    input  [4 :0] x_inst_retire_iid;
     input         x_retire_vld;
     input         x_wb_vld;
 
@@ -66,21 +66,21 @@ module rtu_pst_preg_entry(
     reg [4 :0] preg_next_stats;
     reg        preg_wb_cur_stats;
     reg        preg_wb_next_stats;
-    reg [3 :0] iid;
+    reg [4 :0] iid;
     reg [4 :0] gpr_index;
     reg [5 :0] gpr_pre_preg_index;
 
     // &Wires;
     wire        clk;
     wire        rst_clk;
-    wire [3 :0] create_iid;
+    wire [4 :0] create_iid;
     wire [4 :0] create_gpr_index;
     wire [5 :0] create_gpr_pre_preg_index;
     wire        rtu_global_flush;
     wire        x_pre_alloc_vld;
     wire        x_alloc_vld;
     wire        x_release_vld;
-    wire [3 :0] x_inst_retire_iid;
+    wire [4 :0] x_inst_retire_iid;
     wire        x_retire_vld;
     wire        x_wb_vld;
     wire        x_reset_mapped;
@@ -254,7 +254,7 @@ module rtu_pst_preg_entry(
     always @(posedge clk or negedge rst_clk)
     begin
         if (!rst_clk) begin
-            iid                <= 4'b0;
+            iid                <= 5'b0;
             gpr_index          <= x_reset_gpr_mapped;
             gpr_pre_preg_index <= 6'b0;
         end

@@ -1,7 +1,7 @@
 module rtu_rob (
     clk,
     rst_clk,
-
+    y_rtu_rob_stall_ctrl,
     idu_rtu_rob_iid_req_vld,
     idu_rtu_rob_create_vld,
     idu_rtu_rob_create_opcode,
@@ -36,6 +36,8 @@ module rtu_rob (
     exu_rtu_rob_alu_complete_iid,
     exu_rtu_rob_mxu_complete_vld,
     exu_rtu_rob_mxu_complete_iid,
+    exu_rtu_rob_div_complete_vld,
+    exu_rtu_rob_div_complete_iid,
     exu_rtu_rob_bju_complete_vld,
     exu_rtu_rob_bju_complete_iid,
     exu_rtu_rob_lsu_complete_vld,
@@ -58,7 +60,7 @@ module rtu_rob (
     // &Ports;
     input         clk;
     input         rst_clk;
-
+    input         y_rtu_rob_stall_ctrl;
     input         idu_rtu_rob_iid_req_vld;
     input         idu_rtu_rob_create_vld;
     input  [6 :0] idu_rtu_rob_create_opcode;
@@ -80,47 +82,49 @@ module rtu_rob (
     input         idu_rtu_rob_create_ras;
 
     input         idu_rtu_rob_alu_issue_vld;
-    input  [3 :0] idu_rtu_rob_alu_issue_iid;
+    input  [4 :0] idu_rtu_rob_alu_issue_iid;
     input         idu_rtu_rob_mxu_issue_vld;
-    input  [3 :0] idu_rtu_rob_mxu_issue_iid;
+    input  [4 :0] idu_rtu_rob_mxu_issue_iid;
     input         idu_rtu_rob_bju_issue_vld;
-    input  [3 :0] idu_rtu_rob_bju_issue_iid;
+    input  [4 :0] idu_rtu_rob_bju_issue_iid;
     input         idu_rtu_rob_lsu_issue_vld;
-    input  [3 :0] idu_rtu_rob_lsu_issue_iid;
+    input  [4 :0] idu_rtu_rob_lsu_issue_iid;
     input         idu_rtu_rob_cp0_issue_vld;
-    input  [3 :0] idu_rtu_rob_cp0_issue_iid;
+    input  [4 :0] idu_rtu_rob_cp0_issue_iid;
     input         exu_rtu_rob_alu_complete_vld;
-    input  [3 :0] exu_rtu_rob_alu_complete_iid;
+    input  [4 :0] exu_rtu_rob_alu_complete_iid;
     input         exu_rtu_rob_mxu_complete_vld;
-    input  [3 :0] exu_rtu_rob_mxu_complete_iid;
+    input  [4 :0] exu_rtu_rob_mxu_complete_iid;
+    input         exu_rtu_rob_div_complete_vld;
+    input  [4 :0] exu_rtu_rob_div_complete_iid;
     input         exu_rtu_rob_bju_complete_vld;
-    input  [3 :0] exu_rtu_rob_bju_complete_iid;
+    input  [4 :0] exu_rtu_rob_bju_complete_iid;
     input         exu_rtu_rob_lsu_complete_vld;
-    input  [3 :0] exu_rtu_rob_lsu_complete_iid;
+    input  [4 :0] exu_rtu_rob_lsu_complete_iid;
     input         exu_rtu_rob_cp0_complete_vld;
-    input  [3 :0] exu_rtu_rob_cp0_complete_iid;
+    input  [4 :0] exu_rtu_rob_cp0_complete_iid;
     input         exu_rtu_rob_bju_pcjump_vld;
-    input  [3 :0] exu_rtu_rob_bju_pcjump_iid;
+    input  [4 :0] exu_rtu_rob_bju_pcjump_iid;
 
     input  [63:0] ebreak_gpr10;
 
     output        rtu_idu_rf_pcjump;
     output        rtu_global_flush;
     output        x_retire_vld;
-    output [3 :0] x_inst_retire_iid;
+    output [4 :0] x_inst_retire_iid;
 
     output        iid_vld;
-    output [3 :0] iid;
+    output [4 :0] iid;
 
     // &Regs;
-    reg [3 :0] head_iid_ptr;
-    reg [3 :0] tail_iid_ptr;
+    reg [4 :0] head_iid_ptr;
+    reg [4 :0] tail_iid_ptr;
     reg [4 :0] num;
 
     // &Wires;
     wire        clk;
     wire        rst_clk;
-
+    wire        y_rtu_rob_stall_ctrl;
     wire        idu_rtu_rob_iid_req_vld;
     wire        idu_rtu_rob_create_vld;
     wire [6 :0] idu_rtu_rob_create_opcode;
@@ -142,37 +146,39 @@ module rtu_rob (
     wire        idu_rtu_rob_create_ras;
 
     wire        idu_rtu_rob_alu_issue_vld;
-    wire [3 :0] idu_rtu_rob_alu_issue_iid;
+    wire [4 :0] idu_rtu_rob_alu_issue_iid;
     wire        idu_rtu_rob_mxu_issue_vld;
-    wire [3 :0] idu_rtu_rob_mxu_issue_iid;
+    wire [4 :0] idu_rtu_rob_mxu_issue_iid;
     wire        idu_rtu_rob_bju_issue_vld;
-    wire [3 :0] idu_rtu_rob_bju_issue_iid;
+    wire [4 :0] idu_rtu_rob_bju_issue_iid;
     wire        idu_rtu_rob_lsu_issue_vld;
-    wire [3 :0] idu_rtu_rob_lsu_issue_iid;
+    wire [4 :0] idu_rtu_rob_lsu_issue_iid;
     wire        idu_rtu_rob_cp0_issue_vld;
-    wire [3 :0] idu_rtu_rob_cp0_issue_iid;
+    wire [4 :0] idu_rtu_rob_cp0_issue_iid;
     wire        exu_rtu_rob_alu_complete_vld;
-    wire [3 :0] exu_rtu_rob_alu_complete_iid;
+    wire [4 :0] exu_rtu_rob_alu_complete_iid;
     wire        exu_rtu_rob_mxu_complete_vld;
-    wire [3 :0] exu_rtu_rob_mxu_complete_iid;
+    wire [4 :0] exu_rtu_rob_mxu_complete_iid;
+    wire        exu_rtu_rob_div_complete_vld;
+    wire [4 :0] exu_rtu_rob_div_complete_iid;
     wire        exu_rtu_rob_bju_complete_vld;
-    wire [3 :0] exu_rtu_rob_bju_complete_iid;
+    wire [4 :0] exu_rtu_rob_bju_complete_iid;
     wire        exu_rtu_rob_lsu_complete_vld;
-    wire [3 :0] exu_rtu_rob_lsu_complete_iid;
+    wire [4 :0] exu_rtu_rob_lsu_complete_iid;
     wire        exu_rtu_rob_cp0_complete_vld;
-    wire [3 :0] exu_rtu_rob_cp0_complete_iid;
+    wire [4 :0] exu_rtu_rob_cp0_complete_iid;
     wire        exu_rtu_rob_bju_pcjump_vld;
-    wire [3 :0] exu_rtu_rob_bju_pcjump_iid;
+    wire [4 :0] exu_rtu_rob_bju_pcjump_iid;
 
     wire [63:0] ebreak_gpr10;
 
     wire        rtu_idu_rf_pcjump;
     wire        rtu_global_flush;
     wire        x_retire_vld;
-    wire [3 :0] x_inst_retire_iid;
+    wire [4 :0] x_inst_retire_iid;
     wire        iid_invalid;
     wire        iid_vld;
-    wire [3 :0] iid;
+    wire [4 :0] iid;
     wire        rob_full_stats;
     wire        rob_empty_stats;
     wire        rob_create_vld;
@@ -734,27 +740,28 @@ module rtu_rob (
     // issue sign
     for (genvar i = 0; i < 16; i++)
     begin: issue_sign
-        assign issue_vld[i] = (idu_rtu_rob_alu_issue_vld & (idu_rtu_rob_alu_issue_iid == i))
-                            | (idu_rtu_rob_mxu_issue_vld & (idu_rtu_rob_mxu_issue_iid == i))
-                            | (idu_rtu_rob_bju_issue_vld & (idu_rtu_rob_bju_issue_iid == i))
-                            | (idu_rtu_rob_lsu_issue_vld & (idu_rtu_rob_lsu_issue_iid == i))
-                            | (idu_rtu_rob_cp0_issue_vld & (idu_rtu_rob_cp0_issue_iid == i));
+        assign issue_vld[i] = (idu_rtu_rob_alu_issue_vld & (idu_rtu_rob_alu_issue_iid[3:0] == i))
+                            | (idu_rtu_rob_mxu_issue_vld & (idu_rtu_rob_mxu_issue_iid[3:0] == i))
+                            | (idu_rtu_rob_bju_issue_vld & (idu_rtu_rob_bju_issue_iid[3:0] == i))
+                            | (idu_rtu_rob_lsu_issue_vld & (idu_rtu_rob_lsu_issue_iid[3:0] == i))
+                            | (idu_rtu_rob_cp0_issue_vld & (idu_rtu_rob_cp0_issue_iid[3:0] == i));
     end
 
     // complete sign
     for (genvar i = 0; i < 16; i++)
     begin: complete_sign
-        assign complete_vld[i] = (exu_rtu_rob_alu_complete_vld & (exu_rtu_rob_alu_complete_iid == i))
-                               | (exu_rtu_rob_mxu_complete_vld & (exu_rtu_rob_mxu_complete_iid == i))
-                               | (exu_rtu_rob_bju_complete_vld & (exu_rtu_rob_bju_complete_iid == i))
-                               | (exu_rtu_rob_lsu_complete_vld & (exu_rtu_rob_lsu_complete_iid == i))
-                               | (exu_rtu_rob_cp0_complete_vld & (exu_rtu_rob_cp0_complete_iid == i));
+        assign complete_vld[i] = (exu_rtu_rob_alu_complete_vld & (exu_rtu_rob_alu_complete_iid[3:0] == i))
+                               | (exu_rtu_rob_mxu_complete_vld & (exu_rtu_rob_mxu_complete_iid[3:0] == i))
+                               | (exu_rtu_rob_div_complete_vld & (exu_rtu_rob_div_complete_iid[3:0] == i))
+                               | (exu_rtu_rob_bju_complete_vld & (exu_rtu_rob_bju_complete_iid[3:0] == i))
+                               | (exu_rtu_rob_lsu_complete_vld & (exu_rtu_rob_lsu_complete_iid[3:0] == i))
+                               | (exu_rtu_rob_cp0_complete_vld & (exu_rtu_rob_cp0_complete_iid[3:0] == i));
     end
 
     // bju_vld_sign
     for (genvar i = 0; i < 16; i++)
     begin: bju_sign
-        assign bju_vld[i] = exu_rtu_rob_bju_pcjump_vld & (exu_rtu_rob_bju_pcjump_iid == i);
+        assign bju_vld[i] = exu_rtu_rob_bju_pcjump_vld & (exu_rtu_rob_bju_pcjump_iid[3:0] == i);
     end
 
     // iid req
@@ -763,19 +770,19 @@ module rtu_rob (
     assign iid_vld        = !rob_full_stats;
 
     // iid create
-    assign rob_create_vld = idu_rtu_rob_create_vld & !rob_full_stats;
+    assign rob_create_vld = idu_rtu_rob_create_vld & !rob_full_stats & ~y_rtu_rob_stall_ctrl;
     assign iid            = tail_iid_ptr;
     for (genvar i = 0; i < 16; i++)
     begin: create_vld_sign
-        assign create_vld[i] = (tail_iid_ptr == i) & rob_create_vld;
+        assign create_vld[i] = (tail_iid_ptr[3:0] == i) & rob_create_vld;
     end
 
     always @(posedge clk or negedge rst_clk)
     begin
         if (!rst_clk)
-            tail_iid_ptr <= 4'b0;
+            tail_iid_ptr <= 5'b0;
         else if (rtu_global_flush)
-            tail_iid_ptr <= 4'b0;
+            tail_iid_ptr <= 5'b0;
         else if (rob_create_vld)
             tail_iid_ptr <= tail_iid_ptr + 1;
         else
@@ -789,15 +796,15 @@ module rtu_rob (
     assign rob_retire_vld = x_retire_vld & !rob_empty_stats;
     for (genvar i = 0; i < 16; i++)
     begin: head_iid_ptr_cur_vld_sign
-        assign head_iid_ptr_cur_vld[i] = (head_iid_ptr == i);
+        assign head_iid_ptr_cur_vld[i] = (head_iid_ptr[3:0] == i);
     end
 
     always @(posedge clk or negedge rst_clk)
     begin
         if (!rst_clk)
-            head_iid_ptr <= 4'b0;
+            head_iid_ptr <= 5'b0;
         else if (rtu_global_flush)
-            head_iid_ptr <= 4'b0;
+            head_iid_ptr <= 5'b0;
         else if (rob_retire_vld)
             head_iid_ptr <= head_iid_ptr + 1;
         else
@@ -831,7 +838,7 @@ module rtu_rob (
         begin: message_print
             $display("RTU_ROB: iid = %d, vld = %b, num = %d", iid, iid_vld, num);
             $display("|                                                 |    jump   |           src1          |           src2          |          dst         |            imm             |  type  |            pipe             |       stats        |");
-            $display("| iid | vld | opcode  | funct3 |        pc        | bju | ras | src1_vld | src1 | psrc1 | src2_vld | src2 | psrc2 | dst_vld | dst | pdst | imm_vld |       imm        | RISBUJ | ALU | MXE | BJU | LSU | CP0 | issue? | complete? |");
+            $display("| iid | vld | opcode  | funct3 |        pc        | bju | ras | src1_vld | src1 | psrc1 | src2_vld | src2 | psrc2 | dst_vld | dst | pdst | imm_vld |       imm        | RISBUJ | ALU | MXU | BJU | LSU | CP0 | issue? | complete? |");
             $display("| 0   | %b   | %b | %b    | %x | %b   | %b   | %b        | x%02d  | p%02d   | %b        | x%02d  | p%02d   | %b       | x%02d | p%02d  | %b       | %x | %b | %b   | %b   | %b   | %b   | %b   | %b      | %b         |",
                     iid0_message[190],     iid0_message[189:183], iid0_message[182:180], iid0_message[179:116],
                     iid0_message[115],     iid0_message[114],     iid0_message[113],     iid0_message[112:108],

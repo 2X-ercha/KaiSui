@@ -62,7 +62,7 @@ module idu_is_biq (
     input         rtu_global_flush;
     input         y_idu_is_stall_ctrl;
     input         idu_idu_is_vld;
-    input  [3 :0] rtu_idu_is_iid;
+    input  [4 :0] rtu_idu_is_iid;
     input  [6 :0] idu_idu_is_opcode;
     input  [6 :0] idu_idu_is_funct7;
     input  [2 :0] idu_idu_is_funct3;
@@ -100,7 +100,7 @@ module idu_is_biq (
     input  [5 :0] exu_idu_is_lsu_result_preg;
     output        biq_stall_ctrl;
     output        biq_vld;
-    output [3 :0] biq_iid;
+    output [4 :0] biq_iid;
     output [6 :0] biq_opcode;
     output [6 :0] biq_funct7;
     output [2 :0] biq_funct3;
@@ -125,7 +125,7 @@ module idu_is_biq (
     wire        rtu_global_flush;
     wire        y_idu_is_stall_ctrl;
     wire        idu_idu_is_vld;
-    wire [3 :0] rtu_idu_is_iid;
+    wire [4 :0] rtu_idu_is_iid;
     wire [6 :0] idu_idu_is_opcode;
     wire [6 :0] idu_idu_is_funct7;
     wire [2 :0] idu_idu_is_funct3;
@@ -163,7 +163,7 @@ module idu_is_biq (
     wire [5 :0] exu_idu_is_lsu_result_preg;
     wire        biq_stall_ctrl;
     wire        biq_vld;
-    wire [3 :0] biq_iid;
+    wire [4 :0] biq_iid;
     wire [6 :0] biq_opcode;
     wire [6 :0] biq_funct7;
     wire [2 :0] biq_funct3;
@@ -176,10 +176,10 @@ module idu_is_biq (
     wire [5 :0] biq_pdst;
     wire        biq_imm_vld;
     wire [63:0] biq_imm;
-    wire [3 :0] entry0_iid;
-    wire [3 :0] entry1_iid;
-    wire [3 :0] entry2_iid;
-    wire [3 :0] entry3_iid;
+    wire [4 :0] entry0_iid;
+    wire [4 :0] entry1_iid;
+    wire [4 :0] entry2_iid;
+    wire [4 :0] entry3_iid;
     wire [6 :0] entry0_opcode;
     wire [6 :0] entry1_opcode;
     wire [6 :0] entry2_opcode;
@@ -510,10 +510,10 @@ module idu_is_biq (
             tail_biq_ptr <= tail_biq_ptr;
     end
 
-    assign biq_iid = (entry0_iid & {4{issue_vld[0]}})
-                   | (entry1_iid & {4{issue_vld[1]}})
-                   | (entry2_iid & {4{issue_vld[2]}})
-                   | (entry3_iid & {4{issue_vld[3]}});
+    assign biq_iid = (entry0_iid & {5{issue_vld[0]}})
+                   | (entry1_iid & {5{issue_vld[1]}})
+                   | (entry2_iid & {5{issue_vld[2]}})
+                   | (entry3_iid & {5{issue_vld[3]}});
     assign biq_opcode = (entry0_opcode & {7{issue_vld[0]}})
                       | (entry1_opcode & {7{issue_vld[1]}})
                       | (entry2_opcode & {7{issue_vld[2]}})
