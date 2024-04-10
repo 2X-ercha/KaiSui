@@ -2,6 +2,7 @@
 // `define DEBUG_IDU_ID_PRINT
 // `define DEBUG_IDU_IR_PRINT
 // `define DEBUG_IDU_IS_AIQ_PRINT
+// `define DEBUG_IDU_IS_MIQ_PRINT
 // `define DEBUG_IDU_IS_BIQ_PRINT
 // `define DEBUG_IDU_IS_LSIQ_PRINT
 
