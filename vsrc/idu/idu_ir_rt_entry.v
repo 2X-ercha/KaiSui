@@ -103,9 +103,7 @@ module idu_ir_rt_entry(
             ready <= 1;
         else if (rtu_global_flush)
             ready <= 1;
-        else if (y_idu_ir_stall_ctrl)
-            ready <= ready;
-        else if (map_update_vld)
+        else if (map_update_vld & ~y_idu_ir_stall_ctrl)
             ready <= 0;
         else if (ready_vld)
             ready <= 1;

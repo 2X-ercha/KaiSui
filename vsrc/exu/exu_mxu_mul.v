@@ -591,9 +591,9 @@ module exu_mxu_mul (
                                                    : {{32{result_lh_sel[31]}}, result_lh_sel[31:0]};
 
 
-    assign exu_idu_is_mul1_forward_vld  = wallace_vld & (wallace_pdst != 0);
-    assign exu_idu_is_mul1_forward_preg = wallace_pdst;
-    assign exu_idu_is_mul2_forward_vld  = add_l_vld & (add_l_pdst != 0);
-    assign exu_idu_is_mul2_forward_preg = add_l_pdst;
+    assign exu_idu_is_mul1_forward_vld  = booth_vld & (booth_pdst != 0);
+    assign exu_idu_is_mul1_forward_preg = booth_pdst;
+    assign exu_idu_is_mul2_forward_vld  = wallace_vld & (wallace_pdst != 0);
+    assign exu_idu_is_mul2_forward_preg = wallace_pdst;
 
 endmodule

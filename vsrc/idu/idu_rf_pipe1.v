@@ -39,6 +39,7 @@ module idu_rf_pipe1 (
     exu_idu_rf_lsu_cdb_result,
     x_rf_pipe1_psrc1_value,
     x_rf_pipe1_psrc2_value,
+    idu_idu_is_div_stall_ctrl,
     x_rf_preg_psrc1_vld,
     x_rf_preg_psrc1,
     x_rf_preg_psrc2_vld,
@@ -96,6 +97,7 @@ module idu_rf_pipe1 (
     input  [63:0] exu_idu_rf_lsu_cdb_result;
     input  [63:0] x_rf_pipe1_psrc1_value;
     input  [63:0] x_rf_pipe1_psrc2_value;
+    output        idu_idu_is_div_stall_ctrl;
     output        x_rf_preg_psrc1_vld;
     output [5 :0] x_rf_preg_psrc1;
     output        x_rf_preg_psrc2_vld;
@@ -184,6 +186,7 @@ module idu_rf_pipe1 (
     wire        forward_psrc2_match;
     wire [63:0] x_rf_pipe1_psrc1_value;
     wire [63:0] x_rf_pipe1_psrc2_value;
+    wire        idu_idu_is_div_stall_ctrl;
     wire        pipe1_psrc1_vld;
     wire [63:0] pipe1_psrc1_value;
     wire        pipe1_psrc2_vld;
@@ -301,5 +304,7 @@ module idu_rf_pipe1 (
                                     | (exu_idu_rf_div_cdb_result & {64{exu_idu_rf_div_cdb_psrc2_match}})
                                     | (exu_idu_rf_lsu_cdb_result & {64{exu_idu_rf_lsu_cdb_psrc2_match}}))
                                     : x_rf_pipe1_psrc2_value;
+
+    assign idu_idu_is_div_stall_ctrl = (pipe1_vld & pipe1_funct3[2]);
 
 endmodule

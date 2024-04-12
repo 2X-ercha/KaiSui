@@ -3,6 +3,7 @@ module idu_is_miq (
     rst_clk,
     rtu_global_flush,
     y_idu_is_stall_ctrl,
+    idu_idu_is_div_stall_ctrl,
     exu_idu_is_div_stall_ctrl,
     idu_idu_is_vld,
     rtu_idu_is_iid,
@@ -56,6 +57,7 @@ module idu_is_miq (
     input         rst_clk;
     input         rtu_global_flush;
     input         y_idu_is_stall_ctrl;
+    input         idu_idu_is_div_stall_ctrl;
     input         exu_idu_is_div_stall_ctrl;
     input         idu_idu_is_vld;
     input  [4 :0] rtu_idu_is_iid;
@@ -116,6 +118,7 @@ module idu_is_miq (
     wire        rst_clk;
     wire        rtu_global_flush;
     wire        y_idu_is_stall_ctrl;
+    wire        idu_idu_is_div_stall_ctrl;
     wire        exu_idu_is_div_stall_ctrl;
     wire        idu_idu_is_vld;
     wire [4 :0] rtu_idu_is_iid;
@@ -430,10 +433,10 @@ module idu_is_miq (
     assign create_vld    = create_sel & {4{create_entry_vld}};
 
     // issue_entry_sel
-    assign entry_issue_ready[0] = entry_ready[0] & ((entry0_funct3[2] & ~exu_idu_is_div_stall_ctrl) | ~entry0_funct3[2]);
-    assign entry_issue_ready[1] = entry_ready[1] & ((entry1_funct3[2] & ~exu_idu_is_div_stall_ctrl) | ~entry1_funct3[2]);
-    assign entry_issue_ready[2] = entry_ready[2] & ((entry2_funct3[2] & ~exu_idu_is_div_stall_ctrl) | ~entry2_funct3[2]);
-    assign entry_issue_ready[3] = entry_ready[3] & ((entry3_funct3[2] & ~exu_idu_is_div_stall_ctrl) | ~entry3_funct3[2]);
+    assign entry_issue_ready[0] = entry_ready[0] & ((entry0_funct3[2] & ~exu_idu_is_div_stall_ctrl & ~idu_idu_is_div_stall_ctrl) | ~entry0_funct3[2]);
+    assign entry_issue_ready[1] = entry_ready[1] & ((entry1_funct3[2] & ~exu_idu_is_div_stall_ctrl & ~idu_idu_is_div_stall_ctrl) | ~entry1_funct3[2]);
+    assign entry_issue_ready[2] = entry_ready[2] & ((entry2_funct3[2] & ~exu_idu_is_div_stall_ctrl & ~idu_idu_is_div_stall_ctrl) | ~entry2_funct3[2]);
+    assign entry_issue_ready[3] = entry_ready[3] & ((entry3_funct3[2] & ~exu_idu_is_div_stall_ctrl & ~idu_idu_is_div_stall_ctrl) | ~entry3_funct3[2]);
     assign cmp_10 = {~entry_issue_ready[1], entry1_age} < {~entry_issue_ready[0], entry0_age};
     assign cmp_32 = {~entry_issue_ready[3], entry3_age} < {~entry_issue_ready[2], entry2_age};
     assign cmp_30 = cmp_32_vage < cmp_10_vage;
